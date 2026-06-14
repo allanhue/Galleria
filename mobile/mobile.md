@@ -1,0 +1,1 @@
+capacitor wrapps the frontend apk
