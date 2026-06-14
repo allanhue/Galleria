@@ -1,21 +1,28 @@
 'use client'
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { events, Event } from '@/lib/api'
-import EventCard from '@/components/eventcard'
+import { events, Event, RSSItem } from '@/app/lib/api'
 
-const categories = ['All', 'Music', 'Food & Drink', 'Art', 'Sports', 'Networking', 'Outdoors', 'Tech', 'Culture']
+const categories = [
+  'All', 'Music', 'Food & Drink', 'Art',
+  'Sports', 'Networking', 'Tech', 'Culture'
+]
 
 export default function EventsPage() {
   const searchParams = useSearchParams()
-  const [eventList, setEventList] = useState<Event[]>([])
+  const [dbEvents, setDbEvents] = useState<Event[]>([])
+  const [rssItems, setRssItems] = useState<RSSItem[]>([])
   const [loading, setLoading] = useState(true)
   const [category, setCategory] = useState(searchParams.get('category') || '')
 
   useEffect(() => {
     setLoading(true)
     events.getAll({ category })
-      .then((res) => setEventList(res.data))
+      .then((res) => {
+        setDbEvents(res.data.events || [])
+        setRssItems(res.data.rss || [])
+      })
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [category])
@@ -24,7 +31,6 @@ export default function EventsPage() {
     <main className="flex flex-col gap-6">
       <h1 className="text-2xl font-semibold">Events</h1>
 
-      {/* Category filters */}
       <div className="flex gap-2 flex-wrap">
         {categories.map((cat) => (
           <button
@@ -41,16 +47,85 @@ export default function EventsPage() {
         ))}
       </div>
 
-      {/* Events grid */}
       {loading ? (
         <p className="text-gray-400 text-sm">Loading events...</p>
-      ) : eventList.length === 0 ? (
-        <p className="text-gray-400 text-sm">No events found. Try a different category.</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {eventList.map((event) => (
-            <EventCard key={event.id} event={event} />
-          ))}
+        <div className="flex flex-col gap-10">
+
+          {/* DB + Seeded Events */}
+          {dbEvents.length > 0 && (
+            <section className="flex flex-col gap-4">
+              <h2 className="text-base font-medium text-gray-700">
+                Upcoming in Nairobi
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {dbEvents.map((event) => (
+                  <div
+                    key={event.id}
+                    className="border rounded-xl p-4 flex flex-col gap-2 hover:shadow-sm transition"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">
+                        {event.category}
+                      </span>
+                      <span className="text-xs text-gray-400">{event.source}</span>
+                    </div>
+                    <h3 className="font-medium text-base">{event.title}</h3>
+                    <p className="text-sm text-gray-500 line-clamp-2">
+                      {event.description}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {event.date} · {event.location}
+                    </p>
+                    <Link
+                      href={`/events/${event.id}`}
+                      className="mt-2 bg-black text-white text-sm py-2 rounded-lg text-center"
+                    >
+                      View & Book
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* RSS Events */}
+          {rssItems.length > 0 && (
+            <section className="flex flex-col gap-4">
+              <h2 className="text-base font-medium text-gray-700">
+                From around the web
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {rssItems.map((item, i) => (
+                  <div
+                    key={i}
+                    className="border rounded-xl p-4 flex flex-col gap-2 hover:shadow-sm transition"
+                  >
+                    <h3 className="font-medium text-sm line-clamp-2">
+                      {item.title}
+                    </h3>
+                    <p className="text-xs text-gray-500 line-clamp-3">
+                      {item.description}
+                    </p>
+                    <a
+                      href={item.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-500 underline mt-auto"
+                    >
+                      Read more →
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {dbEvents.length === 0 && rssItems.length === 0 && (
+            <p className="text-gray-400 text-sm">
+              No events found. Try a different category.
+            </p>
+          )}
         </div>
       )}
     </main>

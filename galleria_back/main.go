@@ -1,59 +1,65 @@
 package main
 
 import (
-    "galleria_back/db"
-    "galleria_back/handlers"
-    "galleria_back/models"
-    "github.com/gin-gonic/gin"
-    "github.com/joho/godotenv"
-    "log"
-    "github.com/gin-contrib/cors"
+	"galleria_back/db"
+	"galleria_back/handlers"
+	"galleria_back/middleware"
+	"galleria_back/models"
+	"os"
 
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
+	"log"
 )
 
 func main() {
-    if err := godotenv.Load(); err != nil {
-        log.Fatal("Error loading .env file")
-    }
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
-    db.Connect()
+	db.Connect()
 
-    // Auto migrate all models
-    db.DB.AutoMigrate(
-        &models.User{},
-        &models.Event{},
-        &models.Booking{},
-        &models.CommunityPost{},
-        &models.Vote{},
-    )
+	db.DB.AutoMigrate(
+		&models.User{},
+		&models.Event{},
+		&models.Booking{},
+		&models.CommunityPost{},
+		&models.Vote{},
+	)
 
-    // Seed Nairobi events
-    db.SeedEvents()
+	db.SeedEvents()
 
-    r := gin.Default()
+	r := gin.Default()
 
-    // Auth
-    r.POST("/auth/register", handlers.Register)
-    r.POST("/auth/login",    handlers.Login)
+	// CORS
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+	}))
 
-    // Events
-    r.GET("/events",             handlers.GetAllEvents)
-    r.GET("/events/:id",         handlers.GetEvent)
-    r.POST("/events",            handlers.CreateEvent)
-    r.POST("/events/:id/book",   handlers.BookEvent)
+	// Public routes
+	r.POST("/auth/register", handlers.Register)
+	r.POST("/auth/login",    handlers.Login)
+	r.GET("/events",         handlers.GetAllEvents)
+	r.GET("/events/:id",     handlers.GetEvent)
 
-    // Community
-    r.GET("/community",              handlers.GetPosts)
-    r.POST("/community",             handlers.CreatePost)
-    r.POST("/community/:id/vote",    handlers.VotePost)
+	// Protected routes
+	protected := r.Group("/")
+	protected.Use(middleware.AuthMiddleware())
+	{
+		protected.POST("/events",              handlers.CreateEvent)
+		protected.POST("/events/:id/book",     handlers.BookEvent)
+		protected.GET("/community",            handlers.GetPosts)
+		protected.POST("/community",           handlers.CreatePost)
+		protected.POST("/community/:id/vote",  handlers.VotePost)
+	}
 
-    r.Run(":8080")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	r.Run(":" + port)
 }
-
-// Add after gin.Default()
-r.Use(cors.New(cors.Config{
-    AllowOrigins:     []string{"http://localhost:3000"},
-    AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
-    AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-    AllowCredentials: true,
-}))

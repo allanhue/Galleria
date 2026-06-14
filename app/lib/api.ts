@@ -7,7 +7,9 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   const token = Cookies.get('token')
-  if (token) config.headers.Authorization = `Bearer ${token}`
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
   return config
 })
 
@@ -28,6 +30,20 @@ export interface Event {
   category: string
   capacity: number
   organizer_id: number
+  source: string
+  image_url: string
+}
+
+export interface RSSItem {
+  title: string
+  description: string
+  link: string
+  pub_date: string
+}
+
+export interface EventsResponse {
+  events: Event[]
+  rss: RSSItem[]
 }
 
 export interface CommunityPost {
@@ -39,31 +55,34 @@ export interface CommunityPost {
   created_at: string
 }
 
-// Auth
 export const auth = {
-  register: (data: { name: string; email: string; password: string; role: string }) =>
-    api.post<{ token: string; user: User }>('/auth/register', data),
+  register: (data: {
+    name: string
+    email: string
+    password: string
+    role: string
+  }) => api.post<{ token: string; user: User }>('/auth/register', data),
 
-  login: (data: { email: string; password: string }) =>
-    api.post<{ token: string; user: User }>('/auth/login', data),
+  login: (data: {
+    email: string
+    password: string
+  }) => api.post<{ token: string; user: User }>('/auth/login', data),
 }
 
-// Events
 export const events = {
   getAll: (params?: { category?: string }) =>
-    api.get<Event[]>('/events', { params }),
+    api.get<EventsResponse>('/events', { params }),
 
   getOne: (id: number) =>
     api.get<Event>(`/events/${id}`),
 
-  create: (data: Omit<Event, 'id' | 'organizer_id'>) =>
+  create: (data: Omit<Event, 'id' | 'organizer_id' | 'source'>) =>
     api.post<Event>('/events', data),
 
   book: (id: number) =>
     api.post(`/events/${id}/book`),
 }
 
-// Community
 export const community = {
   getPosts: () =>
     api.get<CommunityPost[]>('/community'),
