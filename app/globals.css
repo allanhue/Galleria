@@ -1,13 +1,10 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 * {
   box-sizing: border-box;
 }
 
 body {
-  font-family: var(--font-inter);
   background: #ffffff;
   color: #0a0a0a;
 }

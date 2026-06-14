@@ -1,58 +1,59 @@
 package main
 
 import (
-    "gatherly/backend/db"
-    "gatherly/backend/models"
+    "galleria_back/db"
+    "galleria_back/handlers"
+    "galleria_back/models"
     "github.com/gin-gonic/gin"
     "github.com/joho/godotenv"
     "log"
-    "github.com/gin-gonic/gin/cors"
+    "github.com/gin-contrib/cors"
+
 )
 
 func main() {
-
-    err := godotenv.Load()
-    if err != nil {
+    if err := godotenv.Load(); err != nil {
         log.Fatal("Error loading .env file")
     }
 
     db.Connect()
 
-    // Auto create tables
-    db.DB.AutoMigrate(&models.User{})
+    // Auto migrate all models
+    db.DB.AutoMigrate(
+        &models.User{},
+        &models.Event{},
+        &models.Booking{},
+        &models.CommunityPost{},
+        &models.Vote{},
+    )
 
-    func withCORS(next http.Handler) http.Handler {
-	allowedOrigins := splitCSV(os.Getenv("CORS_ALLOWED_ORIGINS"))
-	if len(allowedOrigins) == 0 {
-		allowedOrigins = []string{"http://localhost:3000", "http://127.0.0.1:3000"}
-	}
-
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		origin := r.Header.Get("Origin")
-		if origin != "" && contains(allowedOrigins, origin) {
-			w.Header().Set("Access-Control-Allow-Origin", origin)
-			w.Header().Set("Vary", "Origin")
-		}
-
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS")
-
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusNoContent)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
+    // Seed Nairobi events
+    db.SeedEvents()
 
     r := gin.Default()
-    r.Use(cors.Default())
-    r.GET("/health", func(c *gin.Context) {
-        c.JSON(200, gin.H{"status": "Gatherly API running"})
-    })
+
+    // Auth
+    r.POST("/auth/register", handlers.Register)
+    r.POST("/auth/login",    handlers.Login)
+
+    // Events
+    r.GET("/events",             handlers.GetAllEvents)
+    r.GET("/events/:id",         handlers.GetEvent)
+    r.POST("/events",            handlers.CreateEvent)
+    r.POST("/events/:id/book",   handlers.BookEvent)
+
+    // Community
+    r.GET("/community",              handlers.GetPosts)
+    r.POST("/community",             handlers.CreatePost)
+    r.POST("/community/:id/vote",    handlers.VotePost)
 
     r.Run(":8080")
-
-
 }
+
+// Add after gin.Default()
+r.Use(cors.New(cors.Config{
+    AllowOrigins:     []string{"http://localhost:3000"},
+    AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+    AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+    AllowCredentials: true,
+}))

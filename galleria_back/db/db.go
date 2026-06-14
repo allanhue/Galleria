@@ -1,6 +1,7 @@
 package db
 
 import (
+    "fmt"
     "log"
     "os"
 
@@ -12,12 +13,15 @@ var DB *gorm.DB
 
 func Connect() {
     dsn := os.Getenv("DATABASE_URL")
-    
+    if dsn == "" {
+        log.Fatal("DATABASE_URL is not set in .env")
+    }
+
     database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
     if err != nil {
         log.Fatal("Failed to connect to database:", err)
     }
 
     DB = database
-    log.Println("Database connected")
+    fmt.Println("Database connected...")
 }
