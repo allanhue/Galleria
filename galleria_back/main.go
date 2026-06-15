@@ -53,6 +53,8 @@ func main() {
 		protected.POST("/events",              handlers.CreateEvent)
 		protected.POST("/events/:id/book",     handlers.BookEvent)
 		protected.GET("/community",            handlers.GetPosts)
+		protected.GET("/bookings/my",         handlers.GetMyBookings)  
+
 		protected.POST("/community",           handlers.CreatePost)
 		protected.POST("/community/:id/vote",  handlers.VotePost)
 	}

@@ -41,6 +41,7 @@ export interface RSSItem {
   pub_date: string
 }
 
+
 export interface EventsResponse {
   events: Event[]
   rss: RSSItem[]
@@ -53,6 +54,14 @@ export interface CommunityPost {
   votes: number
   user_id: number
   created_at: string
+}
+export interface Booking {
+  id: number
+  user_id: number
+  event_id: number
+  status: string
+  created_at: string
+  event: Event
 }
 
 export const auth = {
@@ -81,6 +90,10 @@ export const events = {
 
   book: (id: number) =>
     api.post(`/events/${id}/book`),
+
+  //added a booking endpoint to get the user's bookings
+  getMyBookings: () =>
+  api.get<Booking[]>('/bookings/my'),
 }
 
 export const community = {
@@ -93,5 +106,6 @@ export const community = {
   vote: (id: number, direction: 'up' | 'down') =>
     api.post(`/community/${id}/vote`, { direction }),
 }
+
 
 export default api
