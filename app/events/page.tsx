@@ -1,5 +1,5 @@
 'use client'
-import Link from 'next/link'
+import { Suspense } from 'react'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { events, Event, RSSItem } from '@/app/lib/api'
@@ -9,7 +9,7 @@ const categories = [
   'Sports', 'Networking', 'Tech', 'Culture'
 ]
 
-export default function EventsPage() {
+function EventsContent() {
   const searchParams = useSearchParams()
   const [dbEvents, setDbEvents] = useState<Event[]>([])
   const [rssItems, setRssItems] = useState<RSSItem[]>([])
@@ -28,9 +28,7 @@ export default function EventsPage() {
   }, [category])
 
   return (
-    <main className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold">Events</h1>
-
+    <div className="flex flex-col gap-6">
       <div className="flex gap-2 flex-wrap">
         {categories.map((cat) => (
           <button
@@ -51,8 +49,6 @@ export default function EventsPage() {
         <p className="text-gray-400 text-sm">Loading events...</p>
       ) : (
         <div className="flex flex-col gap-10">
-
-          {/* DB + Seeded Events */}
           {dbEvents.length > 0 && (
             <section className="flex flex-col gap-4">
               <h2 className="text-base font-medium text-gray-700">
@@ -77,19 +73,18 @@ export default function EventsPage() {
                     <p className="text-xs text-gray-400">
                       {event.date} · {event.location}
                     </p>
-                    <Link
+                    <a
                       href={`/events/${event.id}`}
                       className="mt-2 bg-black text-white text-sm py-2 rounded-lg text-center"
                     >
                       View & Book
-                    </Link>
+                    </a>
                   </div>
                 ))}
               </div>
             </section>
           )}
 
-          {/* RSS Events */}
           {rssItems.length > 0 && (
             <section className="flex flex-col gap-4">
               <h2 className="text-base font-medium text-gray-700">
@@ -128,6 +123,17 @@ export default function EventsPage() {
           )}
         </div>
       )}
+    </div>
+  )
+}
+
+export default function EventsPage() {
+  return (
+    <main className="flex flex-col gap-6">
+      <h1 className="text-2xl font-semibold">Events</h1>
+      <Suspense fallback={<p className="text-gray-400 text-sm">Loading...</p>}>
+        <EventsContent />
+      </Suspense>
     </main>
   )
 }
