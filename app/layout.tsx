@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
@@ -5,15 +6,24 @@ import Navbar from '@/app/components/navbar'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export const metadata: Metadata = {
+export const metadata = {
   title: 'Galleria',
-  description: 'Discover, book and discuss events in your city',
+  description: 'Discover and book events in Nairobi',
+  manifest: '/manifest.json',
+  themeColor: '#000000',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Galleria',
+  },
 }
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
