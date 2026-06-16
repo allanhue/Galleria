@@ -1,6 +1,27 @@
 import Link from 'next/link'
+import {
+  Music,
+  UtensilsCrossed,
+  Palette,
+  Footprints,
+  Handshake,
+  Leaf,
+  Code,
+  Building2,
+} from 'lucide-react'
 
 export default function HomePage() {
+  const categories = [
+    { label: 'Music', Icon: Music },
+    { label: 'Food & Drink', Icon: UtensilsCrossed },
+    { label: 'Art', Icon: Palette },
+    { label: 'Sports', Icon: Footprints },
+    { label: 'Networking', Icon: Handshake },
+    { label: 'Outdoors', Icon: Leaf },
+    { label: 'Tech', Icon: Code },
+    { label: 'Culture', Icon: Building2 },
+  ]
+
   return (
     <main className="flex flex-col gap-10">
 
@@ -16,13 +37,13 @@ export default function HomePage() {
         <div className="flex gap-3 mt-2">
           <Link
             href="/events"
-            className="bg-black text-white px-6 py-2.5 rounded-lg text-sm font-medium"
+            className="bg-black text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
           >
             Browse events
           </Link>
           <Link
             href="/auth/register"
-            className="border px-6 py-2.5 rounded-lg text-sm font-medium"
+            className="border px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
           >
             Join Galleria
           </Link>
@@ -33,22 +54,13 @@ export default function HomePage() {
       <section className="flex flex-col gap-4">
         <h2 className="text-lg font-medium">Browse by category</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {[
-            { label: 'Music',       emoji: '🎵' },
-            { label: 'Food & Drink',emoji: '🍽️' },
-            { label: 'Art',         emoji: '🎨' },
-            { label: 'Sports',      emoji: '⚽' },
-            { label: 'Networking',  emoji: '🤝' },
-            { label: 'Outdoors',    emoji: '🌿' },
-            { label: 'Tech',        emoji: '💻' },
-            { label: 'Culture',     emoji: '🏛️' },
-          ].map((cat) => (
+          {categories.map((cat) => (
             <Link
               key={cat.label}
               href={`/events?category=${cat.label}`}
               className="border rounded-xl p-4 flex items-center gap-3 hover:bg-gray-50 transition-colors"
             >
-              <span className="text-xl">{cat.emoji}</span>
+              <cat.Icon className="w-6 h-6 text-gray-700" />
               <span className="text-sm font-medium">{cat.label}</span>
             </Link>
           ))}

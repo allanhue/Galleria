@@ -6,11 +6,15 @@ import Navbar from '@/app/components/navbar'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Galleria',
-  description: 'Discover and book events in Nairobi',
+  description: 'Discover and book events in Globally',
   manifest: '/manifest.json',
   themeColor: '#000000',
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
