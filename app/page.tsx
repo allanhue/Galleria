@@ -31,7 +31,7 @@ export default function HomePage() {
           Discover events.<br />Connect with people.
         </h1>
         <p className="text-gray-500 text-lg max-w-xl">
-          Find events happening around you, book your spot, and shape
+          Find events happening around you, book your spot and shape
           what happens next with your community.
         </p>
         <div className="flex gap-3 mt-2">
