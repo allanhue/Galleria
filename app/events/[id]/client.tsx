@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { events, Event } from '@/app/lib/api'
 import Cookies from 'js-cookie'
+import { Calendar, MapPin, Users, ArrowLeft, Loader2 } from 'lucide-react'
 
 export default function EventDetailClient() {
   const { id } = useParams()
@@ -39,51 +40,120 @@ export default function EventDetailClient() {
   }
 
   if (loading) return (
-    <p className="text-sm text-gray-400 mt-10">Loading event...</p>
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="flex flex-col items-center gap-3">
+        <Loader2 className="w-8 h-8 animate-spin text-gray-600" />
+        <p className="text-sm text-gray-500">Loading event...</p>
+      </div>
+    </div>
   )
 
   if (!event) return (
-    <p className="text-sm text-gray-400 mt-10">Event not found.</p>
+    <div className="flex items-center justify-center min-h-screen">
+      <p className="text-sm text-gray-500">Event not found.</p>
+    </div>
   )
 
   return (
-    <main className="max-w-2xl flex flex-col gap-8">
-      <div className="flex flex-col gap-3">
-        <a href="/events" className="text-sm text-gray-400 hover:text-black">
-          ← Back to events
-        </a>
-        <span className="text-xs bg-gray-100 px-3 py-1 rounded-full w-fit">
-          {event.category}
-        </span>
-        <h1 className="text-3xl font-semibold">{event.title}</h1>
-        <div className="flex gap-4 text-sm text-gray-500">
-          <span>📅 {event.date}</span>
-          <span>📍 {event.location}</span>
-          <span>👥 {event.capacity} spots</span>
-        </div>
+    <main className="max-w-3xl mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="mb-8">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-gray-600 hover:text-black transition-colors mb-6"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="text-sm font-medium">Back to events</span>
+        </button>
       </div>
 
-      <p className="text-gray-700 leading-relaxed">{event.description}</p>
+      {/* Event Card */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        {/* Event Details Section */}
+        <div className="p-8 space-y-6">
+          {/* Category Badge */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 px-3 py-1 rounded-full border border-blue-200">
+              {event.category}
+            </span>
+          </div>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-lg">
-          {error}
-        </div>
-      )}
+          {/* Title */}
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">{event.title}</h1>
+            <p className="text-gray-700 leading-relaxed text-lg">{event.description}</p>
+          </div>
 
-      {booked ? (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-5 py-4 rounded-xl text-sm font-medium">
-          ✓ You are booked! Check your email for confirmation.
+          {/* Event Info Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-6 border-y border-gray-200">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-50 rounded-lg">
+                <Calendar className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-medium">DATE</p>
+                <p className="text-sm font-semibold text-gray-900">{event.date}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-50 rounded-lg">
+                <MapPin className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-medium">LOCATION</p>
+                <p className="text-sm font-semibold text-gray-900">{event.location}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-50 rounded-lg">
+                <Users className="w-5 h-5 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-medium">CAPACITY</p>
+                <p className="text-sm font-semibold text-gray-900">{event.capacity} spots</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg flex gap-2">
+              <span className="text-lg">⚠️</span>
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Booking Section */}
+          <div className="pt-4">
+            {booked ? (
+              <div className="bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-lg text-sm font-medium flex items-center gap-2">
+                <span className="text-xl">✓</span>
+                <div>
+                  <p className="font-semibold">You are booked!</p>
+                  <p className="text-xs text-green-600 mt-1">Check your email for confirmation details.</p>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={handleBook}
+                disabled={booking}
+                className="w-full bg-black text-white px-8 py-4 rounded-lg text-sm font-semibold hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {booking ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Booking...
+                  </>
+                ) : (
+                  'Book my spot'
+                )}
+              </button>
+            )}
+          </div>
         </div>
-      ) : (
-        <button
-          onClick={handleBook}
-          disabled={booking}
-          className="bg-black text-white px-8 py-3 rounded-xl text-sm font-medium w-fit disabled:opacity-50"
-        >
-          {booking ? 'Booking...' : 'Book my spot'}
-        </button>
-      )}
+      </div>
     </main>
   )
 }
