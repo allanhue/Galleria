@@ -29,11 +29,8 @@ func GetAllEvents(c *gin.Context) {
 
 	query.Find(&dbEvents)
 
-	rssItems, _ := services.FetchRSSEvents()
-
 	c.JSON(http.StatusOK, gin.H{
 		"events": dbEvents,
-		"rss":    rssItems,
 	})
 }
 func GetCities(c *gin.Context) {

@@ -24,9 +24,12 @@ func main() {
 		&models.Booking{},
 		&models.CommunityPost{},
 		&models.Vote{},
+		&models.FeedEvent{}, 
+
 	)
 
 	db.SeedEvents()
+services.StartFeedScheduler() 
 
 	r := gin.Default()
 
@@ -44,6 +47,8 @@ func main() {
 	r.GET("/events",         handlers.GetAllEvents)
 	r.GET("/events/:id",     handlers.GetEvent)
 	r.GET("/events/cities", handlers.GetCities)
+	r.GET("/events/feed", handlers.GetFeedEvents) // ← new public route
+
 
 	// Protected routes
 	protected := r.Group("/")
