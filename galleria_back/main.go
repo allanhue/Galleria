@@ -51,8 +51,7 @@ db.DB.AutoMigrate(
 	r.GET("/events", handlers.GetAllEvents)
 	r.GET("/events/:id", handlers.GetEvent)
 	r.GET("/events/cities", handlers.GetCities)
-	r.GET("/events/feed", handlers.GetFeedEvents) // ← new public route
-
+	r.GET("/events/feed", handlers.GetFeedEvents) 
 	// Protected routes
 	protected := r.Group("/")
 	protected.Use(middleware.AuthMiddleware())
@@ -70,6 +69,7 @@ protected.GET("/community/:id/comments", handlers.GetComments)
 protected.POST("/community/:id/save",    handlers.ToggleSave)
 protected.GET("/community/saved",        handlers.GetMySaved)
 protected.POST("/community/:id/repost",  handlers.RepostPost)
+protected.DELETE("/community/comment/:commentId", handlers.DeleteComment)
 	}
 
 	port := os.Getenv("PORT")

@@ -146,3 +146,21 @@ func RepostPost(c *gin.Context) {
 	db.DB.Model(&models.CommunityPost{}).Where("id = ?", postID).Update("reposts", gorm.Expr("reposts + 1"))
 	c.JSON(http.StatusOK, gin.H{"message": "Reposted"})
 }
+func DeleteComment(c *gin.Context) {
+	commentID := c.Param("commentId")
+	userID, _ := c.Get("user_id")
+
+	var comment models.PostComment
+	if err := db.DB.First(&comment, commentID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found"})
+		return
+	}
+
+	if comment.UserID != userID.(uint) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You can only delete your own comment"})
+		return
+	}
+
+	db.DB.Delete(&comment)
+	c.JSON(http.StatusOK, gin.H{"message": "Comment deleted"})
+}
