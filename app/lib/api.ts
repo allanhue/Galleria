@@ -64,6 +64,28 @@ export interface Booking {
   event: Event
 }
 
+export interface PostComment {
+  id: number
+  post_id: number
+  user_id: number
+  body: string
+  created_at: string
+  user: User
+}
+
+export interface CommunityPost {
+  id: number
+  title: string
+  body: string
+  votes: number
+  saves: number
+  reposts: number
+  user_id: number
+  created_at: string
+  user?: User
+  comments?: PostComment[]
+}
+
 export const auth = {
   register: (data: {
     name: string
@@ -105,6 +127,21 @@ export const community = {
 
   vote: (id: number, direction: 'up' | 'down') =>
     api.post(`/community/${id}/vote`, { direction }),
+
+  addComment: (id: number, body: string) =>
+    api.post<PostComment>(`/community/${id}/comment`, { body }),
+
+  getComments: (id: number) =>
+    api.get<PostComment[]>(`/community/${id}/comments`),
+
+  toggleSave: (id: number) =>
+    api.post<{ saved: boolean }>(`/community/${id}/save`),
+
+  getMySaved: () =>
+    api.get<CommunityPost[]>('/community/saved'),
+
+  repost: (id: number) =>
+    api.post(`/community/${id}/repost`),
 }
 
 

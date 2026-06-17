@@ -4,7 +4,19 @@
   box-sizing: border-box;
 }
 
+:root {
+  --color-ink: #14131F;
+  --color-accent: #3730A9;
+  --color-accent-soft: #EEEDFB;
+  --color-bg: #FAF9F6;
+  --color-border: #E4E1D8;
+}
+
 body {
-  background: #ffffff;
-  color: #0a0a0a;
+  background: var(--color-bg);
+  color: var(--color-ink);
+}
+
+.card, .btn, .input, .chip {
+  border-radius: 4px;
 }

@@ -3,6 +3,10 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import Cookies from 'js-cookie'
 import { useState, useEffect } from 'react'
+import {
+  Compass, CalendarDays, Users, Bookmark,
+  LayoutDashboard, Menu, X, LogOut, UserCircle2
+} from 'lucide-react'
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -34,99 +38,115 @@ export default function Navbar() {
   }
 
   const links = [
-    { href: '/',          label: 'Discover'  },
-    { href: '/events',    label: 'Events'    },
-    { href: '/community', label: 'Community' },
-    { href: '/bookings',  label: 'My Bookings' },
+    { href: '/',          label: 'Discover',  icon: Compass },
+    { href: '/events',    label: 'Events',    icon: CalendarDays },
+    { href: '/community', label: 'Community', icon: Users },
+    { href: '/bookings',  label: 'Bookings',  icon: Bookmark },
     ...(user?.role === 'organizer'
-      ? [{ href: '/dashboard', label: 'Dashboard' }]
+      ? [{ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }]
       : []
     ),
   ]
 
   return (
-    <nav className="border-b px-4 py-3 sticky top-0 bg-white z-10">
+    <nav className="border-b border-[#E4E1D8] px-4 py-3 sticky top-0 bg-[#FAF9F6] z-10">
       <div className="max-w-6xl mx-auto flex items-center justify-between">
 
-        <Link href="/" className="font-semibold text-lg tracking-tight">
+        <Link href="/" className="font-semibold text-lg tracking-tight flex items-center gap-2">
+          <span className="w-2 h-2 bg-[#3730A9]" />
           Galleria
         </Link>
 
         {/* Desktop links */}
-        <div className="hidden md:flex items-center gap-6">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`text-sm ${
-                pathname === link.href
-                  ? 'text-black font-medium'
-                  : 'text-gray-500 hover:text-black'
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
+        <div className="hidden md:flex items-center gap-1">
+          {links.map((link) => {
+            const Icon = link.icon
+            const active = pathname === link.href
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`flex items-center gap-1.5 text-sm px-3 py-1.5 transition-colors ${
+                  active
+                    ? 'text-[#3730A9] font-medium bg-[#EEEDFB]'
+                    : 'text-gray-500 hover:text-[#14131F]'
+                }`}
+              >
+                <Icon size={15} strokeWidth={2} />
+                {link.label}
+              </Link>
+            )
+          })}
         </div>
 
         {/* Desktop auth */}
         <div className="hidden md:flex items-center gap-3">
           {user ? (
             <>
-              <span className="text-sm text-gray-500">{user.name}</span>
+              <span className="flex items-center gap-1.5 text-sm text-gray-500">
+                <UserCircle2 size={16} />
+                {user.name}
+              </span>
               <button
                 onClick={handleLogout}
-                className="text-sm border px-4 py-1.5 rounded-lg hover:bg-gray-50"
+                className="flex items-center gap-1.5 text-sm border border-[#E4E1D8] px-3 py-1.5 hover:bg-white transition-colors"
               >
+                <LogOut size={14} />
                 Sign out
               </button>
             </>
           ) : (
             <>
-              <Link href="/auth/login" className="text-sm text-gray-500 hover:text-black">
+              <Link href="/auth/login" className="text-sm text-gray-500 hover:text-[#14131F]">
                 Sign in
               </Link>
-              <Link href="/auth/register" className="text-sm bg-black text-white px-4 py-1.5 rounded-lg">
+              <Link href="/auth/register" className="text-sm bg-[#14131F] text-white px-4 py-1.5">
                 Register
               </Link>
             </>
           )}
         </div>
 
-        {/* Mobile hamburger */}
+        {/* Mobile toggle */}
         <button
-          className="md:hidden text-gray-500 hover:text-black"
+          className="md:hidden text-gray-500 hover:text-[#14131F]"
           onClick={() => setOpen(!open)}
         >
-          {open ? '✕' : '☰'}
+          {open ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
 
       {/* Mobile menu */}
       {open && (
-        <div className="md:hidden border-t mt-3 pt-3 flex flex-col gap-1 px-2 pb-3">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setOpen(false)}
-              className={`text-sm px-3 py-2.5 rounded-lg ${
-                pathname === link.href
-                  ? 'bg-gray-100 text-black font-medium'
-                  : 'text-gray-500 hover:bg-gray-50'
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-          <div className="border-t mt-2 pt-2">
+        <div className="md:hidden border-t border-[#E4E1D8] mt-3 pt-3 flex flex-col gap-1 px-2 pb-3">
+          {links.map((link) => {
+            const Icon = link.icon
+            const active = pathname === link.href
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setOpen(false)}
+                className={`flex items-center gap-2.5 text-sm px-3 py-2.5 ${
+                  active
+                    ? 'bg-[#EEEDFB] text-[#3730A9] font-medium'
+                    : 'text-gray-500 hover:bg-white'
+                }`}
+              >
+                <Icon size={16} />
+                {link.label}
+              </Link>
+            )
+          })}
+          <div className="border-t border-[#E4E1D8] mt-2 pt-2">
             {user ? (
               <>
                 <p className="text-xs text-gray-400 px-3 py-1">{user.email}</p>
                 <button
                   onClick={handleLogout}
-                  className="w-full text-left text-sm px-3 py-2.5 text-red-500 hover:bg-red-50 rounded-lg"
+                  className="w-full flex items-center gap-2.5 text-left text-sm px-3 py-2.5 text-red-500 hover:bg-red-50"
                 >
+                  <LogOut size={16} />
                   Sign out
                 </button>
               </>
@@ -135,14 +155,14 @@ export default function Navbar() {
                 <Link
                   href="/auth/login"
                   onClick={() => setOpen(false)}
-                  className="block text-sm px-3 py-2.5 text-gray-500 hover:bg-gray-50 rounded-lg"
+                  className="block text-sm px-3 py-2.5 text-gray-500 hover:bg-white"
                 >
                   Sign in
                 </Link>
                 <Link
                   href="/auth/register"
                   onClick={() => setOpen(false)}
-                  className="block text-sm px-3 py-2.5 bg-black text-white rounded-lg mt-1 text-center"
+                  className="block text-sm px-3 py-2.5 bg-[#14131F] text-white mt-1 text-center"
                 >
                   Register
                 </Link>

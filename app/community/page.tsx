@@ -1,8 +1,12 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { community, CommunityPost } from '@/app/lib/api'
+import { community, CommunityPost, PostComment } from '@/app/lib/api'
 import Cookies from 'js-cookie'
+import {
+  ChevronUp, ChevronDown, MessageCircle, Bookmark,
+  Repeat2, Send, AlertCircle, CheckCircle2
+} from 'lucide-react'
 
 export default function CommunityPage() {
   const router = useRouter()
@@ -12,6 +16,9 @@ export default function CommunityPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [openComments, setOpenComments] = useState<number | null>(null)
+  const [commentDrafts, setCommentDrafts] = useState<Record<number, string>>({})
+  const [savedIds, setSavedIds] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     community.getPosts()
@@ -20,20 +27,25 @@ export default function CommunityPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const requireAuth = () => {
     const token = Cookies.get('token')
     if (!token) {
       router.push('/auth/login')
-      return
+      return false
     }
+    return true
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!requireAuth()) return
     setSubmitting(true)
     setError('')
     try {
       const res = await community.createPost(form)
       setPosts([res.data, ...posts])
       setForm({ title: '', body: '' })
-      setSuccess('Idea posted successfully!')
+      setSuccess('Idea posted')
       setTimeout(() => setSuccess(''), 3000)
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to post')
@@ -43,17 +55,76 @@ export default function CommunityPage() {
   }
 
   const handleVote = async (id: number, direction: 'up' | 'down') => {
-    const token = Cookies.get('token')
-    if (!token) {
-      router.push('/auth/login')
-      return
-    }
+    if (!requireAuth()) return
     try {
       await community.vote(id, direction)
       setPosts(posts.map((p) =>
         p.id === id
           ? { ...p, votes: direction === 'up' ? p.votes + 1 : p.votes - 1 }
           : p
+      ))
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const toggleComments = async (postId: number) => {
+    if (openComments === postId) {
+      setOpenComments(null)
+      return
+    }
+    setOpenComments(postId)
+    try {
+      const res = await community.getComments(postId)
+      setPosts(posts.map((p) =>
+        p.id === postId ? { ...p, comments: res.data } : p
+      ))
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const submitComment = async (postId: number) => {
+    if (!requireAuth()) return
+    const body = commentDrafts[postId]?.trim()
+    if (!body) return
+    try {
+      const res = await community.addComment(postId, body)
+      setPosts(posts.map((p) =>
+        p.id === postId
+          ? { ...p, comments: [...(p.comments || []), res.data] }
+          : p
+      ))
+      setCommentDrafts({ ...commentDrafts, [postId]: '' })
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const handleSave = async (postId: number) => {
+    if (!requireAuth()) return
+    try {
+      const res = await community.toggleSave(postId)
+      const newSet = new Set(savedIds)
+      if (res.data.saved) newSet.add(postId)
+      else newSet.delete(postId)
+      setSavedIds(newSet)
+      setPosts(posts.map((p) =>
+        p.id === postId
+          ? { ...p, saves: res.data.saved ? p.saves + 1 : p.saves - 1 }
+          : p
+      ))
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const handleRepost = async (postId: number) => {
+    if (!requireAuth()) return
+    try {
+      await community.repost(postId)
+      setPosts(posts.map((p) =>
+        p.id === postId ? { ...p, reposts: p.reposts + 1 } : p
       ))
     } catch (err: any) {
       console.error(err.response?.data?.error)
@@ -64,58 +135,56 @@ export default function CommunityPage() {
     <main className="max-w-2xl flex flex-col gap-8">
 
       <div>
-        <h1 className="text-2xl font-semibold">Community</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Community</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Suggest ideas, vote on what happens next in your city
+          Suggest ideas, vote, comment, and shape what happens next
         </p>
       </div>
 
       {/* Post form */}
       <form
         onSubmit={handleSubmit}
-        className="border rounded-xl p-5 flex flex-col gap-4"
+        className="border border-[#E4E1D8] p-5 flex flex-col gap-4 bg-white"
       >
-        <h2 className="text-base font-medium">Suggest an event idea</h2>
+        <h2 className="text-sm font-medium uppercase tracking-wide text-gray-500">
+          Suggest an event idea
+        </h2>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-lg">
+          <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3">
+            <AlertCircle size={15} />
             {error}
           </div>
         )}
 
         {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-lg">
+          <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3">
+            <CheckCircle2 size={15} />
             {success}
           </div>
         )}
 
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Title</label>
-          <input
-            placeholder="e.g. Sunset hike at Ngong Hills"
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-            className="border rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-black"
-            required
-          />
-        </div>
+        <input
+          placeholder="e.g. Sunset hike at Ngong Hills"
+          value={form.title}
+          onChange={(e) => setForm({ ...form, title: e.target.value })}
+          className="border border-[#E4E1D8] px-4 py-2.5 text-sm outline-none focus:border-[#3730A9]"
+          required
+        />
 
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Describe your idea</label>
-          <textarea
-            placeholder="What would this event look like? Where, when, who for?"
-            value={form.body}
-            onChange={(e) => setForm({ ...form, body: e.target.value })}
-            className="border rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-black resize-none"
-            rows={4}
-            required
-          />
-        </div>
+        <textarea
+          placeholder="What would this event look like? Where, when, who for?"
+          value={form.body}
+          onChange={(e) => setForm({ ...form, body: e.target.value })}
+          className="border border-[#E4E1D8] px-4 py-2.5 text-sm outline-none focus:border-[#3730A9] resize-none"
+          rows={3}
+          required
+        />
 
         <button
           type="submit"
           disabled={submitting}
-          className="self-end bg-black text-white px-6 py-2.5 rounded-lg text-sm font-medium disabled:opacity-50"
+          className="self-end bg-[#14131F] text-white px-6 py-2.5 text-sm font-medium disabled:opacity-50 hover:bg-[#3730A9] transition-colors"
         >
           {submitting ? 'Posting...' : 'Post idea'}
         </button>
@@ -123,54 +192,138 @@ export default function CommunityPage() {
 
       {/* Posts list */}
       <div className="flex flex-col gap-4">
-        <h2 className="text-base font-medium">
-          Community ideas {posts.length > 0 && `(${posts.length})`}
+        <h2 className="text-sm font-medium uppercase tracking-wide text-gray-500">
+          Ideas {posts.length > 0 && `(${posts.length})`}
         </h2>
 
         {loading ? (
           <p className="text-sm text-gray-400">Loading ideas...</p>
         ) : posts.length === 0 ? (
-          <div className="border rounded-xl p-8 text-center text-gray-400 text-sm">
-            No ideas yet. Be the first to suggest one!
+          <div className="border border-[#E4E1D8] p-8 text-center text-gray-400 text-sm bg-white">
+            No ideas yet. Be the first to suggest one.
           </div>
         ) : (
-          posts.map((post) => (
-            <div
-              key={post.id}
-              className="border rounded-xl p-5 flex flex-col gap-3"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex flex-col gap-1">
-                  <h3 className="font-medium text-base">{post.title}</h3>
-                  <p className="text-sm text-gray-500 leading-relaxed">
-                    {post.body}
-                  </p>
-                </div>
-              </div>
+          posts.map((post) => {
+            const isSaved = savedIds.has(post.id)
+            const commentsOpen = openComments === post.id
 
-              <div className="flex items-center gap-3 pt-1">
-                <button
-                  onClick={() => handleVote(post.id, 'up')}
-                  className="flex items-center gap-1.5 text-sm border px-3 py-1.5 rounded-lg hover:bg-gray-50 transition"
-                >
-                  ▲ <span className="font-medium">{post.votes}</span>
-                </button>
-                <button
-                  onClick={() => handleVote(post.id, 'down')}
-                  className="text-sm border px-3 py-1.5 rounded-lg hover:bg-gray-50 transition text-gray-400"
-                >
-                  ▽
-                </button>
-                <span className="text-xs text-gray-400 ml-auto">
-                  {new Date(post.created_at).toLocaleDateString('en-KE', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
-                  })}
-                </span>
+            return (
+              <div key={post.id} className="border border-[#E4E1D8] bg-white flex flex-col">
+                <div className="p-5 flex flex-col gap-3">
+                  <div>
+                    <h3 className="font-medium text-base">{post.title}</h3>
+                    <p className="text-sm text-gray-500 leading-relaxed mt-1">
+                      {post.body}
+                    </p>
+                    {post.user && (
+                      <p className="text-xs text-gray-400 mt-2">
+                        by {post.user.name}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1 pt-1">
+                    {/* Vote */}
+                    <div className="flex items-center border border-[#E4E1D8]">
+                      <button
+                        onClick={() => handleVote(post.id, 'up')}
+                        className="p-1.5 hover:bg-[#FAF9F6] text-gray-500"
+                        aria-label="Upvote"
+                      >
+                        <ChevronUp size={15} />
+                      </button>
+                      <span className="text-sm font-medium px-1.5 min-w-[24px] text-center">
+                        {post.votes}
+                      </span>
+                      <button
+                        onClick={() => handleVote(post.id, 'down')}
+                        className="p-1.5 hover:bg-[#FAF9F6] text-gray-500"
+                        aria-label="Downvote"
+                      >
+                        <ChevronDown size={15} />
+                      </button>
+                    </div>
+
+                    {/* Comment toggle */}
+                    <button
+                      onClick={() => toggleComments(post.id)}
+                      className="flex items-center gap-1.5 text-sm border border-[#E4E1D8] px-3 py-1.5 hover:bg-[#FAF9F6] text-gray-500"
+                    >
+                      <MessageCircle size={14} />
+                      {post.comments?.length || ''}
+                    </button>
+
+                    {/* Save */}
+                    <button
+                      onClick={() => handleSave(post.id)}
+                      className={`flex items-center gap-1.5 text-sm border px-3 py-1.5 transition-colors ${
+                        isSaved
+                          ? 'border-[#3730A9] text-[#3730A9] bg-[#EEEDFB]'
+                          : 'border-[#E4E1D8] text-gray-500 hover:bg-[#FAF9F6]'
+                      }`}
+                    >
+                      <Bookmark size={14} fill={isSaved ? '#3730A9' : 'none'} />
+                      {post.saves || ''}
+                    </button>
+
+                    {/* Repost */}
+                    <button
+                      onClick={() => handleRepost(post.id)}
+                      className="flex items-center gap-1.5 text-sm border border-[#E4E1D8] px-3 py-1.5 hover:bg-[#FAF9F6] text-gray-500"
+                    >
+                      <Repeat2 size={14} />
+                      {post.reposts || ''}
+                    </button>
+
+                    <span className="text-xs text-gray-400 ml-auto">
+                      {new Date(post.created_at).toLocaleDateString('en-GB', {
+                        day: 'numeric', month: 'short',
+                      })}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Comments thread */}
+                {commentsOpen && (
+                  <div className="border-t border-[#E4E1D8] bg-[#FAF9F6] p-4 flex flex-col gap-3">
+                    {post.comments && post.comments.length > 0 ? (
+                      post.comments.map((c) => (
+                        <div key={c.id} className="flex flex-col gap-0.5">
+                          <span className="text-xs font-medium text-gray-700">
+                            {c.user?.name || 'User'}
+                          </span>
+                          <p className="text-sm text-gray-600">{c.body}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-xs text-gray-400">No comments yet.</p>
+                    )}
+
+                    <div className="flex items-center gap-2 mt-1">
+                      <input
+                        placeholder="Add a comment..."
+                        value={commentDrafts[post.id] || ''}
+                        onChange={(e) =>
+                          setCommentDrafts({ ...commentDrafts, [post.id]: e.target.value })
+                        }
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') submitComment(post.id)
+                        }}
+                        className="flex-1 border border-[#E4E1D8] px-3 py-2 text-sm outline-none focus:border-[#3730A9] bg-white"
+                      />
+                      <button
+                        onClick={() => submitComment(post.id)}
+                        className="p-2 bg-[#14131F] text-white hover:bg-[#3730A9] transition-colors"
+                        aria-label="Send comment"
+                      >
+                        <Send size={14} />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          ))
+            )
+          })
         )}
       </div>
     </main>
