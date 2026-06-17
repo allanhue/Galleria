@@ -118,6 +118,7 @@ export const events = {
   api.get<Booking[]>('/bookings/my'),
 }
 
+
 export const community = {
   getPosts: () =>
     api.get<CommunityPost[]>('/community'),
@@ -142,6 +143,8 @@ export const community = {
 
   repost: (id: number) =>
     api.post(`/community/${id}/repost`),
+  deleteComment: (commentId: number) =>
+  api.delete(`/community/comment/${commentId}`),
 }
 
 

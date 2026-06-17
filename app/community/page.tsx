@@ -5,8 +5,22 @@ import { community, CommunityPost, PostComment } from '@/app/lib/api'
 import Cookies from 'js-cookie'
 import {
   ChevronUp, ChevronDown, MessageCircle, Bookmark,
-  Repeat2, Send, AlertCircle, CheckCircle2
+  Repeat2, Send, AlertCircle, CheckCircle2, Trash2
 } from 'lucide-react'
+
+function timeAgo(dateString: string) {
+  const date = new Date(dateString)
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000)
+
+  if (seconds < 60) return 'just now'
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes}m`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days}d`
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+}
 
 export default function CommunityPage() {
   const router = useRouter()
@@ -19,6 +33,22 @@ export default function CommunityPage() {
   const [openComments, setOpenComments] = useState<number | null>(null)
   const [commentDrafts, setCommentDrafts] = useState<Record<number, string>>({})
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set())
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null)
+
+  const handleDeleteComment = async (postId: number, commentId: number) => {
+    try {
+      await community.deleteComment(commentId)
+      setPosts(posts.map((p) =>
+        p.id === postId
+          ? { ...p, comments: (p.comments || []).filter((c) => c.id !== commentId) }
+          : p
+      ))
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+
 
   useEffect(() => {
     community.getPosts()
@@ -101,6 +131,7 @@ export default function CommunityPage() {
     }
   }
 
+  
   const handleSave = async (postId: number) => {
     if (!requireAuth()) return
     try {
@@ -131,13 +162,23 @@ export default function CommunityPage() {
     }
   }
 
+useEffect(() => {
+  const stored = Cookies.get('user')
+  if (stored) {
+    try {
+      const u = JSON.parse(stored)
+      setCurrentUserId(u.id)
+    } catch {}
+  }
+}, [])
+
   return (
     <main className="max-w-2xl flex flex-col gap-8">
 
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Community</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Suggest ideas, vote, comment, and shape what happens next
+          Suggest ideas, vote, comment and shape what happens next
         </p>
       </div>
 
@@ -288,11 +329,28 @@ export default function CommunityPage() {
                   <div className="border-t border-[#E4E1D8] bg-[#FAF9F6] p-4 flex flex-col gap-3">
                     {post.comments && post.comments.length > 0 ? (
                       post.comments.map((c) => (
-                        <div key={c.id} className="flex flex-col gap-0.5">
-                          <span className="text-xs font-medium text-gray-700">
-                            {c.user?.name || 'User'}
-                          </span>
-                          <p className="text-sm text-gray-600">{c.body}</p>
+                        <div key={c.id} className="flex items-start justify-between gap-2 group">
+                          <div className="flex flex-col gap-0.5">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-medium text-gray-700">
+                                {c.user?.name || 'User'}
+                              </span>
+                              <span className="text-[11px] text-gray-400">
+                                {timeAgo(c.created_at)}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-600">{c.body}</p>
+                          </div>
+
+                          {currentUserId === c.user_id && (
+                            <button
+                              onClick={() => handleDeleteComment(post.id, c.id)}
+                              className="text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                              aria-label="Delete comment"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          )}
                         </div>
                       ))
                     ) : (
