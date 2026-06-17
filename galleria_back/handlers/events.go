@@ -11,21 +11,35 @@ import (
 
 func GetAllEvents(c *gin.Context) {
 	category := c.Query("category")
+	city := c.Query("city")
+	country := c.Query("country")
 
 	var dbEvents []models.Event
 	query := db.DB
+
 	if category != "" {
 		query = query.Where("category = ?", category)
 	}
+	if city != "" {
+		query = query.Where("city ILIKE ?", "%"+city+"%")
+	}
+	if country != "" {
+		query = query.Where("country ILIKE ?", "%"+country+"%")
+	}
+
 	query.Find(&dbEvents)
 
-	// Fetch RSS events
 	rssItems, _ := services.FetchRSSEvents()
 
 	c.JSON(http.StatusOK, gin.H{
 		"events": dbEvents,
 		"rss":    rssItems,
 	})
+}
+func GetCities(c *gin.Context) {
+	var cities []string
+	db.DB.Model(&models.Event{}).Distinct().Pluck("city", &cities)
+	c.JSON(http.StatusOK, cities)
 }
 
 func GetEvent(c *gin.Context) {

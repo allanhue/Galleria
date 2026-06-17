@@ -43,6 +43,7 @@ func main() {
 	r.POST("/auth/login",    handlers.Login)
 	r.GET("/events",         handlers.GetAllEvents)
 	r.GET("/events/:id",     handlers.GetEvent)
+	r.GET("/events/cities", handlers.GetCities)
 
 	// Protected routes
 	protected := r.Group("/")
