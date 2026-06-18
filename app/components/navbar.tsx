@@ -38,10 +38,12 @@ export default function Navbar() {
   }
 
   const links = [
+    
     { href: '/',          label: 'Discover',  icon: Compass },
     { href: '/events',    label: 'Events',    icon: CalendarDays },
     { href: '/community', label: 'Community', icon: Users },
     { href: '/bookings',  label: 'Bookings',  icon: Bookmark },
+    { href: '/profile', label: 'Profile', icon: UserCircle2 },
     ...(user?.role === 'organizer'
       ? [{ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }]
       : []

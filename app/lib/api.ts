@@ -86,6 +86,23 @@ export interface CommunityPost {
   comments?: PostComment[]
 }
 
+export interface ProfileData {
+  user: User
+  my_posts: CommunityPost[]
+  saved_posts: CommunityPost[]
+  reposted_posts: CommunityPost[]
+  stats: {
+    posts: number
+    saved: number
+    reposts: number
+    bookings: number
+  }
+}
+
+export const profile = {
+  getMine: () => api.get<ProfileData>('/profile/me'),
+}
+
 export const auth = {
   register: (data: {
     name: string

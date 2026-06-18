@@ -70,6 +70,7 @@ protected.POST("/community/:id/save",    handlers.ToggleSave)
 protected.GET("/community/saved",        handlers.GetMySaved)
 protected.POST("/community/:id/repost",  handlers.RepostPost)
 protected.DELETE("/community/comment/:commentId", handlers.DeleteComment)
+protected.GET("/profile/me", handlers.GetMyProfile)
 	}
 
 	port := os.Getenv("PORT")
