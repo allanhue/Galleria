@@ -53,13 +53,15 @@ func GetEvent(c *gin.Context) {
 
 func CreateEvent(c *gin.Context) {
 	var input struct {
-		Title       string `json:"title"       binding:"required"`
-		Description string `json:"description" binding:"required"`
-		Date        string `json:"date"        binding:"required"`
-		Location    string `json:"location"    binding:"required"`
-		Category    string `json:"category"    binding:"required"`
-		Capacity    int    `json:"capacity"    binding:"required"`
-		ImageURL    string `json:"image_url"`
+		Title       string   `json:"title"       binding:"required"`
+		Description string   `json:"description" binding:"required"`
+		Date        string   `json:"date"        binding:"required"`
+		Location    string   `json:"location"    binding:"required"`
+		Category    string   `json:"category"    binding:"required"`
+		Capacity    int      `json:"capacity"    binding:"required"`
+		PhotoURLs   []string `json:"photo_urls"`
+		City        string   `json:"city"`
+		Country     string   `json:"country"`
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -74,7 +76,9 @@ func CreateEvent(c *gin.Context) {
 		Location:    input.Location,
 		Category:    input.Category,
 		Capacity:    input.Capacity,
-		ImageURL:    input.ImageURL,
+		PhotoURLs:   input.PhotoURLs,
+		City:        input.City,
+		Country:     input.Country,
 		Source:      "own",
 	}
 

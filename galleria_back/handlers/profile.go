@@ -59,3 +59,17 @@ func GetMyProfile(c *gin.Context) {
 		},
 	})
 }
+func UpdateAvatar(c *gin.Context) {
+	userID, _ := c.Get("user_id")
+
+	var input struct {
+		AvatarURL string `json:"avatar_url" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	db.DB.Model(&models.User{}).Where("id = ?", userID).Update("avatar_url", input.AvatarURL)
+	c.JSON(http.StatusOK, gin.H{"message": "Avatar updated"})
+}

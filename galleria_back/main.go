@@ -71,6 +71,7 @@ protected.GET("/community/saved",        handlers.GetMySaved)
 protected.POST("/community/:id/repost",  handlers.RepostPost)
 protected.DELETE("/community/comment/:commentId", handlers.DeleteComment)
 protected.GET("/profile/me", handlers.GetMyProfile)
+protected.PUT("/profile/avatar", handlers.UpdateAvatar)
 	}
 
 	port := os.Getenv("PORT")
