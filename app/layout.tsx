@@ -1,16 +1,9 @@
-
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import './globals.css'
-import Navbar from '@/app/components/navbar'
-
-const inter = Inter({ subsets: ['latin'] })
+import type { Metadata, Viewport } from 'next'
 
 export const metadata: Metadata = {
   title: 'Galleria',
-  description: 'Discover and book events in Globally',
+  description: 'Discover and book events Globally',
   manifest: '/manifest.json',
-  themeColor: '#000000',
   icons: {
     icon: '/favicon.ico',
     apple: '/apple-touch-icon.png',
@@ -22,6 +15,9 @@ export const metadata: Metadata = {
   },
 }
 
+export const viewport: Viewport = {
+  themeColor: '#000000',
+}
 export default function RootLayout({
   children,
 }: {
