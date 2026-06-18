@@ -20,6 +20,13 @@ export interface User {
   email: string
   role: 'attendee' | 'organizer'
 }
+export interface User {
+  id: number
+  name: string
+  email: string
+  role: 'attendee' | 'organizer'
+  avatar_url?: string
+}
 
 export interface Event {
   id: number
@@ -27,11 +34,13 @@ export interface Event {
   description: string
   date: string
   location: string
+  city?: string
+  country?: string
   category: string
   capacity: number
   organizer_id: number
   source: string
-  image_url: string
+  photo_urls?: string[]
 }
 
 export interface RSSItem {
@@ -101,6 +110,8 @@ export interface ProfileData {
 
 export const profile = {
   getMine: () => api.get<ProfileData>('/profile/me'),
+  updateAvatar: (avatarUrl: string) =>
+    api.put('/profile/avatar', { avatar_url: avatarUrl }),
 }
 
 export const auth = {
@@ -123,9 +134,17 @@ export const events = {
 
   getOne: (id: number) =>
     api.get<Event>(`/events/${id}`),
-
-  create: (data: Omit<Event, 'id' | 'organizer_id' | 'source'>) =>
-    api.post<Event>('/events', data),
+create: (data: {
+  title: string
+  description: string
+  date: string
+  location: string
+  category: string
+  capacity: number
+  city?: string
+  country?: string
+  photo_urls?: string[]
+}) => api.post<Event>('/events', data),
 
   book: (id: number) =>
     api.post(`/events/${id}/book`),
