@@ -28,6 +28,8 @@ db.DB.AutoMigrate(
 	&models.PostComment{},
 	&models.SavedPost{},
 	&models.Repost{},
+	&models.Notification{}, // new
+
 )
 
 
@@ -72,6 +74,11 @@ protected.POST("/community/:id/repost",  handlers.RepostPost)
 protected.DELETE("/community/comment/:commentId", handlers.DeleteComment)
 protected.GET("/profile/me", handlers.GetMyProfile)
 protected.PUT("/profile/avatar", handlers.UpdateAvatar)
+protected.GET("/notifications",       handlers.GetNotifications)
+protected.PUT("/notifications/read",  handlers.MarkNotificationsRead)
+protected.PUT("/events/:id",    handlers.UpdateEvent)
+protected.DELETE("/events/:id", handlers.DeleteEvent)
+protected.DELETE("/community/:id", handlers.DeletePost)
 	}
 
 	port := os.Getenv("PORT")

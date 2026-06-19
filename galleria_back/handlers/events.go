@@ -13,6 +13,7 @@ func GetAllEvents(c *gin.Context) {
 	category := c.Query("category")
 	city := c.Query("city")
 	country := c.Query("country")
+	search := c.Query("search")
 
 	var dbEvents []models.Event
 	query := db.DB
@@ -25,6 +26,10 @@ func GetAllEvents(c *gin.Context) {
 	}
 	if country != "" {
 		query = query.Where("country ILIKE ?", "%"+country+"%")
+	}
+	if search != "" {
+		query = query.Where("title ILIKE ? OR description ILIKE ? OR location ILIKE ?",
+			"%"+search+"%", "%"+search+"%", "%"+search+"%")
 	}
 
 	query.Find(&dbEvents)
@@ -48,7 +53,19 @@ func GetEvent(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, event)
+	var bookedCount int64
+	db.DB.Model(&models.Booking{}).Where("event_id = ? AND status = ?", id, "confirmed").Count(&bookedCount)
+
+	c.JSON(http.StatusOK, gin.H{
+		"id": event.ID, "title": event.Title, "description": event.Description,
+		"date": event.Date, "location": event.Location, "city": event.City,
+		"country": event.Country, "category": event.Category, "capacity": event.Capacity,
+		"organizer_id": event.OrganizerID, "source": event.Source, "photo_urls": event.PhotoURLs,
+		"created_at": event.CreatedAt,
+		"spots_taken":     bookedCount,
+		"spots_remaining": int64(event.Capacity) - bookedCount,
+		"sold_out":        bookedCount >= int64(event.Capacity),
+	})
 }
 
 func CreateEvent(c *gin.Context) {
@@ -99,14 +116,19 @@ func BookEvent(c *gin.Context) {
 		return
 	}
 
-	// Get user from context (set by auth middleware later)
+	var bookedCount int64
+	db.DB.Model(&models.Booking{}).Where("event_id = ? AND status = ?", id, "confirmed").Count(&bookedCount)
+	if bookedCount >= int64(event.Capacity) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Event is sold out"})
+		return
+	}
+
 	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})
 		return
 	}
 
-	// Check already booked
 	var existing models.Booking
 	if err := db.DB.Where("user_id = ? AND event_id = ?", userID, id).First(&existing).Error; err == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Already booked"})
@@ -118,21 +140,73 @@ func BookEvent(c *gin.Context) {
 		EventID: event.ID,
 		Status:  "confirmed",
 	}
-
 	if err := db.DB.Create(&booking).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to book"})
 		return
 	}
 
-	// Send confirmation email
 	var user models.User
 	db.DB.First(&user, userID)
-	services.SendMail(
-		user.Email,
-		user.Name,
-		"Booking Confirmed — "+event.Title,
-		"<h1>You're booked!</h1><p>Your spot at <b>"+event.Title+"</b> is confirmed.</p>",
-	)
+	services.SendMail(user.Email, user.Name, "Booking Confirmed — "+event.Title,
+		"<h1>You're booked!</h1><p>Your spot at <b>"+event.Title+"</b> is confirmed.</p>")
 
 	c.JSON(http.StatusCreated, booking)
+}
+
+
+func UpdateEvent(c *gin.Context) {
+	id := c.Param("id")
+	userID, _ := c.Get("user_id")
+
+	var event models.Event
+	if err := db.DB.First(&event, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+		return
+	}
+	if event.OrganizerID != userID.(uint) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Not your event"})
+		return
+	}
+
+	var input struct {
+		Title       string   `json:"title"`
+		Description string   `json:"description"`
+		Date        string   `json:"date"`
+		Location    string   `json:"location"`
+		City        string   `json:"city"`
+		Country     string   `json:"country"`
+		Category    string   `json:"category"`
+		Capacity    int      `json:"capacity"`
+		PhotoURLs   []string `json:"photo_urls"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	db.DB.Model(&event).Updates(models.Event{
+		Title: input.Title, Description: input.Description, Date: input.Date,
+		Location: input.Location, City: input.City, Country: input.Country,
+		Category: input.Category, Capacity: input.Capacity, PhotoURLs: input.PhotoURLs,
+	})
+
+	c.JSON(http.StatusOK, event)
+}
+
+func DeleteEvent(c *gin.Context) {
+	id := c.Param("id")
+	userID, _ := c.Get("user_id")
+
+	var event models.Event
+	if err := db.DB.First(&event, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+		return
+	}
+	if event.OrganizerID != userID.(uint) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Not your event"})
+		return
+	}
+
+	db.DB.Delete(&event)
+	c.JSON(http.StatusOK, gin.H{"message": "Event deleted"})
 }
