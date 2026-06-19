@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { events, Booking } from '@/app/lib/api'
+import Spinner from '@/app/components/spinner'
 import Cookies from 'js-cookie'
 import Link from 'next/link'
 
@@ -32,7 +33,7 @@ export default function BookingsPage() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-gray-400">Loading bookings...</p>
+        <Spinner label="Loading bookings..." />
       ) : bookings.length === 0 ? (
         <div className="border rounded-xl p-8 text-center text-gray-400 text-sm">
           No bookings yet.{' '}

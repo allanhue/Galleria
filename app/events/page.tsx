@@ -3,6 +3,7 @@ import { Suspense } from 'react'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { events, Event, RSSItem } from '@/app/lib/api'
+import Spinner from '@/app/components/spinner'
 
 const categories = [
   'All', 'Music', 'Food & Drink', 'Art',
@@ -46,7 +47,7 @@ function EventsContent() {
       </div>
 
       {loading ? (
-        <p className="text-gray-400 text-sm">Loading events...</p>
+        <Spinner label="Loading events..." />
       ) : (
         <div className="flex flex-col gap-10">
           {dbEvents.length > 0 && (
@@ -58,27 +59,40 @@ function EventsContent() {
                 {dbEvents.map((event) => (
                   <div
                     key={event.id}
-                    className="border rounded-xl p-4 flex flex-col gap-2 hover:shadow-sm transition"
+                    className="border border-[#E4E1D8] bg-white flex flex-col hover:shadow-sm transition"
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">
+                    {event.photo_urls && event.photo_urls.length > 0 ? (
+                      <div className="aspect-video w-full overflow-hidden">
+                        <img
+                          src={event.photo_urls[0]}
+                          alt={event.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="aspect-video w-full bg-[#FAF9F6] flex items-center justify-center">
+                        <span className="w-2 h-2 bg-[#3730A9]" />
+                      </div>
+                    )}
+
+                    <div className="p-4 flex flex-col gap-2">
+                      <span className="text-xs uppercase tracking-wide text-gray-400">
                         {event.category}
                       </span>
-                      <span className="text-xs text-gray-400">{event.source}</span>
+                      <h3 className="font-medium text-base">{event.title}</h3>
+                      <p className="text-sm text-gray-500 line-clamp-2">
+                        {event.description}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {event.date} · {event.location}
+                      </p>
+                      <a
+                        href={`/events/${event.id}`}
+                        className="mt-2 bg-[#14131F] text-white text-sm py-2 text-center hover:bg-[#3730A9] transition-colors"
+                      >
+                        View & Book
+                      </a>
                     </div>
-                    <h3 className="font-medium text-base">{event.title}</h3>
-                    <p className="text-sm text-gray-500 line-clamp-2">
-                      {event.description}
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      {event.date} · {event.location}
-                    </p>
-                    <a
-                      href={`/events/${event.id}`}
-                      className="mt-2 bg-black text-white text-sm py-2 rounded-lg text-center"
-                    >
-                      View & Book
-                    </a>
                   </div>
                 ))}
               </div>
@@ -116,10 +130,8 @@ function EventsContent() {
             </section>
           )}
 
-          {dbEvents.length === 0 && rssItems.length === 0 && (
-            <p className="text-gray-400 text-sm">
-              No events found. Try a different category.
-            </p>
+          {!dbEvents.length && !rssItems.length && (
+            <p className="text-gray-400 text-sm">No events found.</p>
           )}
         </div>
       )}

@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { events, Event } from '@/app/lib/api'
 import Cookies from 'js-cookie'
 import { Calendar, MapPin, Users, ArrowLeft, Loader2 } from 'lucide-react'
+import Spinner from '@/app/components/spinner'
 
 export default function EventDetailClient() {
   const { id } = useParams()
@@ -39,14 +40,7 @@ export default function EventDetailClient() {
     }
   }
 
-  if (loading) return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="flex flex-col items-center gap-3">
-        <Loader2 className="w-8 h-8 animate-spin text-gray-600" />
-        <p className="text-sm text-gray-500">Loading event...</p>
-      </div>
-    </div>
-  )
+  if (loading) return <Spinner label="Loading event..." />
 
   if (!event) return (
     <div className="flex items-center justify-center min-h-screen">
@@ -71,6 +65,17 @@ export default function EventDetailClient() {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         {/* Event Details Section */}
         <div className="p-8 space-y-6">
+          {/* Photos Gallery */}
+          {event.photo_urls && event.photo_urls.length > 0 && (
+            <div className="grid grid-cols-2 gap-2">
+              {event.photo_urls.map((url, i) => (
+                <div key={i} className={`overflow-hidden ${i === 0 ? 'col-span-2 aspect-video' : 'aspect-square'}`}>
+                  <img src={url} alt="" className="w-full h-full object-cover" />
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Category Badge */}
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 px-3 py-1 rounded-full border border-blue-200">

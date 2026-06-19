@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { profile, ProfileData } from '@/app/lib/api'
+import Spinner from '@/app/components/spinner'
 import { uploadImage } from '@/app/lib/upload'
 import Cookies from 'js-cookie'
 import {
@@ -55,7 +56,7 @@ export default function ProfilePage() {
     }
   }
 
-  if (loading) return <p className="text-sm text-gray-400 mt-10">Loading profile...</p>
+  if (loading) return <Spinner label="Loading profile..." />
   if (!data) return <p className="text-sm text-gray-400 mt-10">Could not load profile.</p>
 
   const { user, my_posts, saved_posts, reposted_posts, stats } = data

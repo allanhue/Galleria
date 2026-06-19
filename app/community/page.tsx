@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { community, CommunityPost, PostComment } from '@/app/lib/api'
 import Cookies from 'js-cookie'
+import Spinner from '@/app/components/spinner'
 import {
   ChevronUp, ChevronDown, MessageCircle, Bookmark,
   Repeat2, Send, AlertCircle, CheckCircle2, Trash2
@@ -238,7 +239,7 @@ useEffect(() => {
         </h2>
 
         {loading ? (
-          <p className="text-sm text-gray-400">Loading ideas...</p>
+          <Spinner label="Loading ideas..." />
         ) : posts.length === 0 ? (
           <div className="border border-[#E4E1D8] p-8 text-center text-gray-400 text-sm bg-white">
             No ideas yet. Be the first to suggest one.
