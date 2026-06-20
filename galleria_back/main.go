@@ -94,6 +94,8 @@ protected.POST("/messages/start/:userId", handlers.StartConversation)
 protected.GET("/messages/conversations",  handlers.GetConversations)
 protected.GET("/messages/:id",            handlers.GetMessages)
 protected.POST("/messages/:id",           handlers.SendMessage)
+protected.DELETE("/notifications/:id", handlers.DismissNotification)
+protected.GET("/discover/people", handlers.GetSuggestedPeople)
 	}
 
 	port := os.Getenv("PORT")
