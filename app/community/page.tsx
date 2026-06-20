@@ -48,6 +48,15 @@ export default function CommunityPage() {
       console.error(err)
     }
   }
+const handleDeletePost = async (postId: number) => {
+  if (!confirm('Delete this idea permanently?')) return
+  try {
+    await community.deletePost(postId)
+    setPosts(posts.filter((p) => p.id !== postId))
+  } catch (err) {
+    console.error(err)
+  }
+}
 
 
 
@@ -316,6 +325,15 @@ useEffect(() => {
                       <Repeat2 size={14} />
                       {post.reposts || ''}
                     </button>
+                    
+                    {currentUserId === post.user_id && (
+  <button
+    onClick={() => handleDeletePost(post.id)}
+    className="flex items-center gap-1.5 text-sm border border-[#E4E1D8] px-3 py-1.5 hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors"
+  >
+    <Trash2 size={14} />
+  </button>
+)}
 
                     <span className="text-xs text-gray-400 ml-auto">
                       {new Date(post.created_at).toLocaleDateString('en-GB', {
@@ -324,6 +342,7 @@ useEffect(() => {
                     </span>
                   </div>
                 </div>
+                
 
                 {/* Comments thread */}
                 {commentsOpen && (

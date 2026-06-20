@@ -94,6 +94,24 @@ export interface CommunityPost {
   user?: User
   comments?: PostComment[]
 }
+export interface Notification {
+  id: number
+  user_id: number
+  actor_id: number
+  type: string
+  post_id?: number
+  event_id?: number
+  message: string
+  read: boolean
+  created_at: string
+  actor: User
+}
+
+export interface EventDetail extends Event {
+  spots_taken: number
+  spots_remaining: number
+  sold_out: boolean
+}
 
 export interface ProfileData {
   user: User
@@ -129,29 +147,29 @@ export const auth = {
 }
 
 export const events = {
-  getAll: (params?: { category?: string }) =>
+  getAll: (params?: { category?: string; city?: string; country?: string; search?: string }) =>
     api.get<EventsResponse>('/events', { params }),
 
   getOne: (id: number) =>
-    api.get<Event>(`/events/${id}`),
-create: (data: {
-  title: string
-  description: string
-  date: string
-  location: string
-  category: string
-  capacity: number
-  city?: string
-  country?: string
-  photo_urls?: string[]
-}) => api.post<Event>('/events', data),
+    api.get<EventDetail>(`/events/${id}`),
+
+  create: (data: {
+    title: string; description: string; date: string; location: string
+    category: string; capacity: number; city?: string; country?: string
+    photo_urls?: string[]
+  }) => api.post<Event>('/events', data),
+
+  update: (id: number, data: Partial<Event>) =>
+    api.put<Event>(`/events/${id}`, data),
+
+  delete: (id: number) =>
+    api.delete(`/events/${id}`),
 
   book: (id: number) =>
     api.post(`/events/${id}/book`),
 
-  //added a booking endpoint to get the user's bookings
   getMyBookings: () =>
-  api.get<Booking[]>('/bookings/my'),
+    api.get<Booking[]>('/bookings/my'),
 }
 
 
@@ -179,8 +197,37 @@ export const community = {
 
   repost: (id: number) =>
     api.post(`/community/${id}/repost`),
-  deleteComment: (commentId: number) =>
+
+  
+deleteComment: (commentId: number) =>
   api.delete(`/community/comment/${commentId}`),
+
+deletePost: (id: number) =>
+  api.delete(`/community/${id}`),
+}
+
+export interface Notification {
+  id: number
+  user_id: number
+  actor_id: number
+  type: string
+  post_id?: number
+  event_id?: number
+  message: string
+  read: boolean
+  created_at: string
+  actor: User
+}
+
+export interface EventDetail extends Event {
+  spots_taken: number
+  spots_remaining: number
+  sold_out: boolean
+}
+
+export const notifications = {
+  getAll: () => api.get<{ notifications: Notification[]; unread_count: number }>('/notifications'),
+  markRead: () => api.put('/notifications/read'),
 }
 
 

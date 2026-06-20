@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { events, Event, RSSItem } from '@/app/lib/api'
 import Spinner from '@/app/components/spinner'
+import { Search } from 'lucide-react'
 
 const categories = [
   'All', 'Music', 'Food & Drink', 'Art',
@@ -16,17 +17,27 @@ function EventsContent() {
   const [rssItems, setRssItems] = useState<RSSItem[]>([])
   const [loading, setLoading] = useState(true)
   const [category, setCategory] = useState(searchParams.get('category') || '')
+const [search, setSearch] = useState('')
+const [debouncedSearch, setDebouncedSearch] = useState('')
+
+useEffect(() => {
+  const timer = setTimeout(() => setDebouncedSearch(search), 400)
+  return () => clearTimeout(timer)
+}, [search])
 
   useEffect(() => {
     setLoading(true)
-    events.getAll({ category })
+    events.getAll({ category, search: debouncedSearch })
       .then((res) => {
         setDbEvents(res.data.events || [])
         setRssItems(res.data.rss || [])
       })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [category])
+  }, [category, debouncedSearch])
+
+
+  
 
   return (
     <div className="flex flex-col gap-6">
@@ -74,6 +85,17 @@ function EventsContent() {
                         <span className="w-2 h-2 bg-[#3730A9]" />
                       </div>
                     )}
+
+
+   <div className="relative">
+  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+  <input
+    placeholder="Search events, venues, cities..."
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    className="w-full border border-[#E4E1D8] pl-9 pr-4 py-2.5 text-sm outline-none focus:border-[#3730A9]"
+  />
+</div>
 
                     <div className="p-4 flex flex-col gap-2">
                       <span className="text-xs uppercase tracking-wide text-gray-400">

@@ -5,8 +5,9 @@ import Cookies from 'js-cookie'
 import { useState, useEffect } from 'react'
 import {
   Compass, CalendarDays, Users, Bookmark,
-  LayoutDashboard, Menu, X, LogOut, UserCircle2,Gem
+  LayoutDashboard, Menu, X, LogOut, UserCircle2, Gem
 } from 'lucide-react'
+import NotificationBell from '@/app/components/notification_bell'
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -38,12 +39,11 @@ export default function Navbar() {
   }
 
   const links = [
-    
     { href: '/',          label: 'Discover',  icon: Compass },
     { href: '/events',    label: 'Events',    icon: CalendarDays },
     { href: '/community', label: 'Community', icon: Users },
     { href: '/bookings',  label: 'Bookings',  icon: Bookmark },
-    { href: '/profile', label: 'Profile', icon: UserCircle2 },
+    { href: '/profile',   label: 'Profile',   icon: UserCircle2 },
     ...(user?.role === 'organizer'
       ? [{ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }]
       : []
@@ -54,10 +54,10 @@ export default function Navbar() {
     <nav className="border-b border-[#E4E1D8] px-4 py-3 sticky top-0 bg-[#FAF9F6] z-10">
       <div className="max-w-6xl mx-auto flex items-center justify-between">
 
-      <Link href="/" className="font-semibold text-lg tracking-tight flex items-center gap-2">
-  <Gem size={20} className="text-[#3730A9]" strokeWidth={2.2} />
-  Galleria
-</Link>
+        <Link href="/" className="font-semibold text-lg tracking-tight flex items-center gap-2">
+          <Gem size={20} className="text-[#3730A9]" strokeWidth={2.2} />
+          Galleria
+        </Link>
 
         {/* Desktop links */}
         <div className="hidden md:flex items-center gap-1">
@@ -85,6 +85,7 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-3">
           {user ? (
             <>
+              <NotificationBell />
               <span className="flex items-center gap-1.5 text-sm text-gray-500">
                 <UserCircle2 size={16} />
                 {user.name}

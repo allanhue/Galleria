@@ -1,15 +1,15 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { events, Event } from '@/app/lib/api'
+import { events, EventDetail } from '@/app/lib/api'
 import Cookies from 'js-cookie'
-import { Calendar, MapPin, Users, ArrowLeft, Loader2 } from 'lucide-react'
+import { Calendar, MapPin, Users, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react'
 import Spinner from '@/app/components/spinner'
 
 export default function EventDetailClient() {
   const { id } = useParams()
   const router = useRouter()
-  const [event, setEvent] = useState<Event | null>(null)
+  const [event, setEvent] = useState<EventDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [booked, setBooked] = useState(false)
   const [booking, setBooking] = useState(false)
@@ -62,9 +62,9 @@ export default function EventDetailClient() {
       </div>
 
       {/* Event Card */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        {/* Event Details Section */}
-        <div className="p-8 space-y-6">
+      <div className="bg-white border border-[#E4E1D8] overflow-hidden">
+        <div className="p-8 flex flex-col gap-6">
+
           {/* Photos Gallery */}
           {event.photo_urls && event.photo_urls.length > 0 && (
             <div className="grid grid-cols-2 gap-2">
@@ -78,82 +78,62 @@ export default function EventDetailClient() {
 
           {/* Category Badge */}
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 px-3 py-1 rounded-full border border-blue-200">
+            <span className="w-1.5 h-1.5 bg-[#3730A9]" />
+            <span className="text-xs uppercase tracking-wide text-gray-500">
               {event.category}
             </span>
           </div>
 
           {/* Title */}
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">{event.title}</h1>
-            <p className="text-gray-700 leading-relaxed text-lg">{event.description}</p>
+            <h1 className="text-3xl font-semibold tracking-tight text-gray-900 mb-3">
+              {event.title}
+            </h1>
+            <p className="text-gray-700 leading-relaxed">{event.description}</p>
           </div>
 
-          {/* Event Info Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-6 border-y border-gray-200">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <Calendar className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 font-medium">DATE</p>
-                <p className="text-sm font-semibold text-gray-900">{event.date}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-50 rounded-lg">
-                <MapPin className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 font-medium">LOCATION</p>
-                <p className="text-sm font-semibold text-gray-900">{event.location}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-50 rounded-lg">
-                <Users className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 font-medium">CAPACITY</p>
-                <p className="text-sm font-semibold text-gray-900">{event.capacity} spots</p>
-              </div>
-            </div>
+          {/* Event Info Row */}
+          <div className="flex flex-wrap gap-6 py-5 border-y border-[#E4E1D8] text-sm text-gray-500">
+            <span className="flex items-center gap-1.5">
+              <Calendar size={15} />
+              {event.date}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <MapPin size={15} />
+              {event.location}
+            </span>
+            <span className={`flex items-center gap-1.5 ${event.sold_out ? 'text-red-500 font-medium' : ''}`}>
+              <Users size={15} />
+              {event.sold_out ? 'Sold out' : `${event.spots_remaining} spots left`}
+            </span>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg flex gap-2">
-              <span className="text-lg">⚠️</span>
-              <span>{error}</span>
+            <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3">
+              <AlertCircle size={15} />
+              {error}
             </div>
           )}
 
           {/* Booking Section */}
-          <div className="pt-4">
+          <div>
             {booked ? (
-              <div className="bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-lg text-sm font-medium flex items-center gap-2">
-                <span className="text-xl">✓</span>
-                <div>
-                  <p className="font-semibold">You are booked!</p>
-                  <p className="text-xs text-green-600 mt-1">Check your email for confirmation details.</p>
-                </div>
+              <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 px-5 py-4 text-sm font-medium">
+                <CheckCircle2 size={16} />
+                You are booked. Check your email for confirmation.
+              </div>
+            ) : event.sold_out ? (
+              <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 text-gray-500 px-5 py-4 text-sm font-medium w-fit">
+                This event is sold out
               </div>
             ) : (
               <button
                 onClick={handleBook}
                 disabled={booking}
-                className="w-full bg-black text-white px-8 py-4 rounded-lg text-sm font-semibold hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="bg-[#14131F] text-white px-8 py-3 text-sm font-medium w-fit disabled:opacity-50 hover:bg-[#3730A9] transition-colors"
               >
-                {booking ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Booking...
-                  </>
-                ) : (
-                  'Book my spot'
-                )}
+                {booking ? 'Booking...' : 'Book my spot'}
               </button>
             )}
           </div>
