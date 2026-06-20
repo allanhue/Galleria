@@ -164,7 +164,6 @@ useEffect(() => {
 export default function EventsPage() {
   return (
     <main className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold">Events</h1>
       <Suspense fallback={<p className="text-gray-400 text-sm">Loading...</p>}>
         <EventsContent />
       </Suspense>

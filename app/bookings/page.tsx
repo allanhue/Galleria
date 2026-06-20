@@ -26,7 +26,6 @@ export default function BookingsPage() {
   return (
     <main className="max-w-2xl flex flex-col gap-8">
       <div>
-        <h1 className="text-2xl font-semibold">My Bookings</h1>
         <p className="text-sm text-gray-500 mt-1">
           Events you have booked
         </p>

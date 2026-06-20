@@ -35,7 +35,6 @@ export default function MessagesPage() {
   return (
     <main className="max-w-2xl flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Messages</h1>
         <p className="text-sm text-gray-500 mt-1">
           Conversations with people you follow
         </p>
