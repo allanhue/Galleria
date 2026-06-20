@@ -86,6 +86,12 @@ func CreateEvent(c *gin.Context) {
 		return
 	}
 
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})
+		return
+	}
+
 	event := models.Event{
 		Title:       input.Title,
 		Description: input.Description,
@@ -97,6 +103,7 @@ func CreateEvent(c *gin.Context) {
 		City:        input.City,
 		Country:     input.Country,
 		Source:      "own",
+		OrganizerID: userID.(uint),
 	}
 
 	if err := db.DB.Create(&event).Error; err != nil {
