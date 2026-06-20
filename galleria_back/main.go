@@ -28,9 +28,14 @@ db.DB.AutoMigrate(
 	&models.PostComment{},
 	&models.SavedPost{},
 	&models.Repost{},
-	&models.Notification{}, // new
-
+	&models.Notification{}, 
+		&models.Follow{},       // new
+	&models.Conversation{}, // new
+	&models.Message{},      // new
 )
+
+
+
 
 
 
@@ -79,6 +84,16 @@ protected.PUT("/notifications/read",  handlers.MarkNotificationsRead)
 protected.PUT("/events/:id",    handlers.UpdateEvent)
 protected.DELETE("/events/:id", handlers.DeleteEvent)
 protected.DELETE("/community/:id", handlers.DeletePost)
+
+// inside protected group
+protected.POST("/follow/:userId",        handlers.FollowUser)
+protected.DELETE("/follow/:userId",      handlers.UnfollowUser)
+protected.GET("/follow/:userId/status",  handlers.GetFollowStatus)
+
+protected.POST("/messages/start/:userId", handlers.StartConversation)
+protected.GET("/messages/conversations",  handlers.GetConversations)
+protected.GET("/messages/:id",            handlers.GetMessages)
+protected.POST("/messages/:id",           handlers.SendMessage)
 	}
 
 	port := os.Getenv("PORT")
