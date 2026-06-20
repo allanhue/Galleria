@@ -1,13 +1,14 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { community, CommunityPost, PostComment } from '@/app/lib/api'
+import { community, CommunityPost, messages, PostComment } from '@/app/lib/api'
 import Cookies from 'js-cookie'
 import Spinner from '@/app/components/spinner'
 import {
   ChevronUp, ChevronDown, MessageCircle, Bookmark,
-  Repeat2, Send, AlertCircle, CheckCircle2, Trash2
+  Repeat2, Send, AlertCircle, CheckCircle2, Trash2,MessageSquare
 } from 'lucide-react'
+import FollowButton from '@/app/components/follow_button'
 
 function timeAgo(dateString: string) {
   const date = new Date(dateString)
@@ -35,6 +36,19 @@ export default function CommunityPage() {
   const [commentDrafts, setCommentDrafts] = useState<Record<number, string>>({})
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set())
   const [currentUserId, setCurrentUserId] = useState<number | null>(null)
+const handleStartChat = async (userId: number) => {
+const token = Cookies.get('token')
+  if (!token) {
+    router.push('/auth/login')
+    return
+  }
+  try {
+    const res = await messages.start(userId)
+    router.push(`/messages/${res.data.id}`)
+  } catch (err: any) {
+    alert(err.response?.data?.error || 'Follow this user first to message them')
+  }
+}
 
   const handleDeleteComment = async (postId: number, commentId: number) => {
     try {
@@ -266,11 +280,14 @@ useEffect(() => {
                     <p className="text-sm text-gray-500 leading-relaxed mt-1">
                       {post.body}
                     </p>
-                    {post.user && (
-                      <p className="text-xs text-gray-400 mt-2">
-                        by {post.user.name}
-                      </p>
-                    )}
+               {post.user && (
+  <div className="flex items-center gap-2 mt-2">
+    <p className="text-xs text-gray-400">by {post.user.name}</p>
+    {currentUserId !== post.user_id && (
+      <FollowButton userId={post.user_id} />
+    )}
+  </div>
+)}
                   </div>
 
                   <div className="flex items-center gap-1 pt-1">

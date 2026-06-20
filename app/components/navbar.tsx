@@ -5,7 +5,7 @@ import Cookies from 'js-cookie'
 import { useState, useEffect } from 'react'
 import {
   Compass, CalendarDays, Users, Bookmark,
-  LayoutDashboard, Menu, X, LogOut, UserCircle2, Gem
+  LayoutDashboard, Menu, X, LogOut, UserCircle2, Gem,MessageSquare
 } from 'lucide-react'
 import NotificationBell from '@/app/components/notification_bell'
 
@@ -44,6 +44,7 @@ export default function Navbar() {
     { href: '/community', label: 'Community', icon: Users },
     { href: '/bookings',  label: 'Bookings',  icon: Bookmark },
     { href: '/profile',   label: 'Profile',   icon: UserCircle2 },
+    { href: '/messages', label: 'Messages', icon: MessageSquare },
     ...(user?.role === 'organizer'
       ? [{ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }]
       : []

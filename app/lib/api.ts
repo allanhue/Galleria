@@ -125,6 +125,28 @@ export interface ProfileData {
     bookings: number
   }
 }
+export interface Conversation {
+  id: number
+  user_a_id: number
+  user_b_id: number
+  user_a: User
+  user_b: User
+  created_at: string
+  last_message: Message | null
+  unread_count: number
+}
+
+export interface Message {
+  id: number
+  conversation_id: number
+  sender_id: number
+  body: string
+  read: boolean
+  created_at: string
+  sender: User
+}
+
+
 
 export const profile = {
   getMine: () => api.get<ProfileData>('/profile/me'),
@@ -198,7 +220,7 @@ export const community = {
   repost: (id: number) =>
     api.post(`/community/${id}/repost`),
 
-  
+
 deleteComment: (commentId: number) =>
   api.delete(`/community/comment/${commentId}`),
 
@@ -230,5 +252,19 @@ export const notifications = {
   markRead: () => api.put('/notifications/read'),
 }
 
+export const follow = {
+  followUser: (userId: number) => api.post(`/follow/${userId}`),
+  unfollowUser: (userId: number) => api.delete(`/follow/${userId}`),
+  getStatus: (userId: number) =>
+    api.get<{ is_following: boolean; is_followed_by: boolean }>(`/follow/${userId}/status`),
+}
+
+export const messages = {
+  start: (userId: number) => api.post<Conversation>(`/messages/start/${userId}`),
+  getConversations: () => api.get<Conversation[]>('/messages/conversations'),
+  getMessages: (conversationId: number) => api.get<Message[]>(`/messages/${conversationId}`),
+  send: (conversationId: number, body: string) =>
+    api.post<Message>(`/messages/${conversationId}`, { body }),
+}
 
 export default api
