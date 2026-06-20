@@ -46,22 +46,16 @@ export default function DashboardPage() {
     <main className="flex flex-col gap-8">
 
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Welcome back{user ? `, ${user.name}` : ''}
-          </p>
-        </div>
-        {user?.role === 'organizer' && (
-          <Link
-            href="/dashboard/create"
-            className="bg-[#14131F] text-white px-5 py-2.5 text-sm font-medium hover:bg-[#3730A9] transition-colors"
-          >
-            + Create event
-          </Link>
-        )}
-      </div>
+<div className="flex items-center justify-end">
+  {user?.role === 'organizer' && (
+    <Link
+      href="/dashboard/create"
+      className="bg-[#14131F] text-white px-5 py-2.5 text-sm font-medium hover:bg-[#3730A9] transition-colors"
+    >
+      + Create event
+    </Link>
+  )}
+</div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
