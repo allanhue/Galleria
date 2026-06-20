@@ -28,12 +28,6 @@ export default function DiscoverPeoplePage() {
 
   return (
     <main className="max-w-2xl flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Discover people</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Suggested based on the kinds of events you're into
-        </p>
-      </div>
 
       {people.length === 0 ? (
         <div className="border border-[#E4E1D8] bg-white p-8 text-center text-gray-400 text-sm">

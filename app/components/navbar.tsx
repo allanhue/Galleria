@@ -38,21 +38,24 @@ export default function Navbar() {
     router.push('/auth/login')
   }
 
-  const links = [
-  
-    { href: '/',          label: 'Discover',      icon: Compass },
-{ href: '/events',    label: 'Events',    icon: CalendarDays },
-{ href: '/community', label: 'Community', icon: Users },
-{ href: '/bookings',  label: 'Bookings',  icon: Bookmark },
-{ href: '/discover',  label: 'People',    icon: Sparkles },
-{ href: '/profile',   label: 'Profile',   icon: UserCircle2 },
- { href: '/messages', label: 'Messages', icon: MessageSquare },
+ const publicLinks = [
+  { href: '/',          label: 'Home',      icon: Compass },
+  { href: '/events',    label: 'Events',    icon: CalendarDays },
+  { href: '/community', label: 'Community', icon: Users },
+]
 
-    ...(user?.role === 'organizer'
-      ? [{ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }]
-      : []
-    ),
-  ]
+const authLinks = user ? [
+  { href: '/bookings', label: 'Bookings', icon: Bookmark },
+  { href: '/messages', label: 'Messages', icon: MessageSquare },
+  { href: '/discover',  label: 'People',   icon: Sparkles },
+  { href: '/profile',   label: 'Profile',  icon: UserCircle2 },
+  ...(user?.role === 'organizer'
+    ? [{ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }]
+    : []
+  ),
+] : []
+
+const links = [...publicLinks, ...authLinks]
 
   return (
     <nav className="border-b border-[#E4E1D8] px-4 py-3 sticky top-0 bg-[#FAF9F6] z-10">

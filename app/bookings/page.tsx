@@ -25,11 +25,6 @@ export default function BookingsPage() {
 
   return (
     <main className="max-w-2xl flex flex-col gap-8">
-      <div>
-        <p className="text-sm text-gray-500 mt-1">
-          Events you have booked
-        </p>
-      </div>
 
       {loading ? (
         <Spinner label="Loading bookings..." />
