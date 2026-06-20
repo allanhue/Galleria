@@ -2,7 +2,8 @@
 import { useEffect, useState, useRef } from 'react'
 import { notifications, Notification } from '@/app/lib/api'
 import Cookies from 'js-cookie'
-import { Bell, MessageCircle, ChevronUp, Bookmark, Repeat2, CalendarCheck } from 'lucide-react'
+import { Bell, MessageCircle, ChevronUp, Bookmark, Repeat2, CalendarCheck, X } from 'lucide-react'
+
 
 const iconMap: Record<string, any> = {
   comment: MessageCircle,
@@ -28,6 +29,16 @@ export default function NotificationBell() {
       })
       .catch(console.error)
   }
+
+const handleDismiss = async (e: React.MouseEvent, id: number) => {
+  e.stopPropagation()
+  try {
+    await notifications.dismiss(id)
+    setItems(items.filter((n) => n.id !== id))
+  } catch (err) {
+    console.error(err)
+  }
+}
 
   useEffect(() => {
     load()
@@ -80,27 +91,34 @@ export default function NotificationBell() {
           {items.length === 0 ? (
             <p className="text-sm text-gray-400 text-center py-8">No notifications yet.</p>
           ) : (
-            items.map((n) => {
-              const Icon = iconMap[n.type] || Bell
-              return (
-                <div
-                  key={n.id}
-                  className={`flex items-start gap-3 px-4 py-3 border-b border-[#E4E1D8] last:border-b-0 ${
-                    !n.read ? 'bg-[#FAF9F6]' : ''
-                  }`}
-                >
-                  <Icon size={15} className="text-[#3730A9] mt-0.5 shrink-0" />
-                  <div className="flex flex-col gap-0.5">
-                    <p className="text-sm text-gray-700">{n.message}</p>
-                    <span className="text-xs text-gray-400">
-                      {new Date(n.created_at).toLocaleDateString('en-GB', {
-                        day: 'numeric', month: 'short',
-                      })}
-                    </span>
-                  </div>
-                </div>
-              )
-            })
+{items.map((n) => {
+  const Icon = iconMap[n.type] || Bell
+  return (
+    <div
+      key={n.id}
+      className={`flex items-start gap-3 px-4 py-3 border-b border-[#E4E1D8] last:border-b-0 group ${
+        !n.read ? 'bg-[#FAF9F6]' : ''
+      }`}
+    >
+      <Icon size={15} className="text-[#3730A9] mt-0.5 shrink-0" />
+      <div className="flex flex-col gap-0.5 flex-1">
+        <p className="text-sm text-gray-700">{n.message}</p>
+        <span className="text-xs text-gray-400">
+          {new Date(n.created_at).toLocaleDateString('en-GB', {
+            day: 'numeric', month: 'short',
+          })}
+        </span>
+      </div>
+      <button
+        onClick={(e) => handleDismiss(e, n.id)}
+        className="text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+        aria-label="Dismiss"
+      >
+        <X size={14} />
+      </button>
+    </div>
+  )
+})}
           )}
         </div>
       )}

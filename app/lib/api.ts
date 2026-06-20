@@ -267,4 +267,20 @@ export const messages = {
     api.post<Message>(`/messages/${conversationId}`, { body }),
 }
 
+
+export interface SuggestedUser extends User {
+  shared_categories: string[]
+  match_score: number
+}
+
+export const notifications = {
+  getAll: () => api.get<{ notifications: Notification[]; unread_count: number }>('/notifications'),
+  markRead: () => api.put('/notifications/read'),
+  dismiss: (id: number) => api.delete(`/notifications/${id}`),
+}
+
+export const discover = {
+  getSuggestedPeople: () => api.get<SuggestedUser[]>('/discover/people'),
+}
+
 export default api
