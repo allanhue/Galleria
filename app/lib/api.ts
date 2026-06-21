@@ -247,10 +247,7 @@ export interface EventDetail extends Event {
   sold_out: boolean
 }
 
-export const notifications = {
-  getAll: () => api.get<{ notifications: Notification[]; unread_count: number }>('/notifications'),
-  markRead: () => api.put('/notifications/read'),
-}
+
 
 export const follow = {
   followUser: (userId: number) => api.post(`/follow/${userId}`),
