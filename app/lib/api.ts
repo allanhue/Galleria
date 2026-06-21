@@ -145,6 +145,37 @@ export interface Message {
   created_at: string
   sender: User
 }
+export interface Notification {
+  id: number
+  user_id: number
+  actor_id: number
+  type: string
+  post_id?: number
+  event_id?: number
+  message: string
+  read: boolean
+  created_at: string
+  actor: User
+}
+
+export interface EventDetail extends Event {
+  spots_taken: number
+  spots_remaining: number
+  sold_out: boolean
+}
+
+
+export interface Report {
+  id: number
+  reporter_id: number
+  target_type: string
+  target_id: number
+  reason: string
+  details: string
+  status: string
+  created_at: string
+  reporter: User
+}
 
 
 
@@ -228,24 +259,6 @@ deletePost: (id: number) =>
   api.delete(`/community/${id}`),
 }
 
-export interface Notification {
-  id: number
-  user_id: number
-  actor_id: number
-  type: string
-  post_id?: number
-  event_id?: number
-  message: string
-  read: boolean
-  created_at: string
-  actor: User
-}
-
-export interface EventDetail extends Event {
-  spots_taken: number
-  spots_remaining: number
-  sold_out: boolean
-}
 
 
 
@@ -280,6 +293,21 @@ export const notifications = {
 
 export const discover = {
   getSuggestedPeople: () => api.get<SuggestedUser[]>('/discover/people'),
+}
+
+
+export const block = {
+  blockUser: (userId: number) => api.post(`/block/${userId}`),
+  unblockUser: (userId: number) => api.delete(`/block/${userId}`),
+  getBlocked: () => api.get<User[]>('/block/mine'),
+}
+
+export const report = {
+  create: (data: { target_type: string; target_id: number; reason: string; details?: string }) =>
+    api.post('/report', data),
+  getAll: () => api.get<Report[]>('/admin/reports'),
+  updateStatus: (id: number, status: string) =>
+    api.put(`/admin/reports/${id}`, { status }),
 }
 
 export default api
