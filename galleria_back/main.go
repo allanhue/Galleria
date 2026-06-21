@@ -96,6 +96,7 @@ protected.GET("/messages/:id",            handlers.GetMessages)
 protected.POST("/messages/:id",           handlers.SendMessage)
 protected.DELETE("/notifications/:id", handlers.DismissNotification)
 protected.GET("/discover/people", handlers.GetSuggestedPeople)
+protected.GET("/follow/following", handlers.GetMyFollowing)
 	}
 
 	port := os.Getenv("PORT")

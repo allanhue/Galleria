@@ -34,6 +34,8 @@ func FollowUser(c *gin.Context) {
 		FollowingID: target,
 	})
 
+	createNotification(target, userID.(uint), "follow", "Someone started following you", nil, nil)
+
 	c.JSON(http.StatusOK, gin.H{"message": "Followed"})
 }
 
@@ -61,4 +63,23 @@ func GetFollowStatus(c *gin.Context) {
 		"is_following":   isFollowing,
 		"is_followed_by": isFollowedBy,
 	})
+}
+
+func GetMyFollowing(c *gin.Context) {
+	userID, _ := c.Get("user_id")
+
+	var follows []models.Follow
+	db.DB.Where("follower_id = ?", userID).Find(&follows)
+
+	var ids []uint
+	for _, f := range follows {
+		ids = append(ids, f.FollowingID)
+	}
+
+	users := []models.User{}
+	if len(ids) > 0 {
+		db.DB.Where("id IN ?", ids).Find(&users)
+	}
+
+	c.JSON(http.StatusOK, users)
 }
