@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { discover, SuggestedUser } from '@/app/lib/api'
 import Cookies from 'js-cookie'
 import Spinner from '@/app/components/spinner'
-import FollowButton from '@/app/components/follow-button'
+import FollowButton from '@/app/components/follow_button'
 import { UserCircle2, Sparkles } from 'lucide-react'
 
 export default function DiscoverPeoplePage() {
