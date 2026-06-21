@@ -254,6 +254,8 @@ export const follow = {
   unfollowUser: (userId: number) => api.delete(`/follow/${userId}`),
   getStatus: (userId: number) =>
     api.get<{ is_following: boolean; is_followed_by: boolean }>(`/follow/${userId}/status`),
+ //get my following list
+  getFollowing: () => api.get<User[]>('/follow/following'),
 }
 
 export const messages = {
