@@ -31,8 +31,13 @@ db.DB.AutoMigrate(
 	&models.Notification{}, 
 		&models.Follow{},       // new
 	&models.Conversation{}, // new
-	&models.Message{},      // new
+	&models.Message{},      
+
+	&models.Block{},
+	&models.Report{},
 )
+
+
 
 
 
@@ -97,6 +102,13 @@ protected.POST("/messages/:id",           handlers.SendMessage)
 protected.DELETE("/notifications/:id", handlers.DismissNotification)
 protected.GET("/discover/people", handlers.GetSuggestedPeople)
 protected.GET("/follow/following", handlers.GetMyFollowing)
+protected.POST("/block/:userId",   handlers.BlockUser)
+protected.DELETE("/block/:userId", handlers.UnblockUser)
+protected.GET("/block/mine",       handlers.GetMyBlocked)
+
+protected.POST("/report",           handlers.CreateReport)
+protected.GET("/admin/reports",     handlers.GetReports)
+protected.PUT("/admin/reports/:id", handlers.UpdateReportStatus)
 	}
 
 	port := os.Getenv("PORT")

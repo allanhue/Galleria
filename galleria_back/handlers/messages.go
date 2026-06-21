@@ -15,7 +15,11 @@ func StartConversation(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	target := parseUint(targetID)
 
-	// Must follow the target to start a conversation
+	if isBlockedEitherWay(userID.(uint), target) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Cannot message this user"})
+		return
+	}
+
 	var follow models.Follow
 	if err := db.DB.Where("follower_id = ? AND following_id = ?", userID, target).First(&follow).Error; err != nil {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Follow this user first to message them"})

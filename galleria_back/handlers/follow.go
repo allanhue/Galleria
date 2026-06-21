@@ -11,15 +11,15 @@ import (
 func FollowUser(c *gin.Context) {
 	targetID := c.Param("userId")
 	userID, _ := c.Get("user_id")
+	target := parseUint(targetID)
 
-	if targetID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user"})
+	if target == userID.(uint) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot follow yourself"})
 		return
 	}
 
-	target := parseUint(targetID)
-	if target == userID.(uint) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot follow yourself"})
+	if isBlockedEitherWay(userID.(uint), target) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Cannot follow this user"})
 		return
 	}
 
