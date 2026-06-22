@@ -29,8 +29,8 @@ db.DB.AutoMigrate(
 	&models.SavedPost{},
 	&models.Repost{},
 	&models.Notification{}, 
-		&models.Follow{},       // new
-	&models.Conversation{}, // new
+	&models.Follow{},       
+	&models.Conversation{}, 
 	&models.Message{},      
 
 	&models.Block{},
@@ -109,6 +109,8 @@ protected.GET("/block/mine",       handlers.GetMyBlocked)
 protected.POST("/report",           handlers.CreateReport)
 protected.GET("/admin/reports",     handlers.GetReports)
 protected.PUT("/admin/reports/:id", handlers.UpdateReportStatus)
+protected.GET("/events/:id/attendees", handlers.GetEventAttendees)
+protected.GET("/dashboard/stats",      handlers.GetOrganizerStats)
 	}
 
 	port := os.Getenv("PORT")
