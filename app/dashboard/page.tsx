@@ -12,6 +12,14 @@ export default function DashboardPage() {
   const [myEvents, setMyEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
+  const [stats, setStats] = useState<{ total_events: number; total_bookings: number } | null>(null)
+
+useEffect(() => {
+  // existing effect, add this fetch alongside
+  organizerTools.getStats()
+    .then((res) => setStats(res.data))
+    .catch(console.error)
+}, [])
 
   useEffect(() => {
     const stored = Cookies.get('user')
@@ -49,7 +57,28 @@ export default function DashboardPage() {
 <div className="flex items-center justify-end">
   {user?.role === 'organizer' && (
     <Link
-      href="/dashboard/create"
+   {user?.role === 'organizer' && event.organizer_id === user.id && (
+  <>
+    <Link
+      href={`/dashboard/attendees/${event.id}`}
+      className="text-xs border border-[#E4E1D8] p-1.5 hover:bg-[#FAF9F6] transition-colors"
+    >
+      <Users size={13} />
+    </Link>
+    <Link
+      href={`/dashboard/edit/${event.id}`}
+      className="text-xs border border-[#E4E1D8] p-1.5 hover:bg-[#FAF9F6] transition-colors"
+    >
+      <Pencil size={13} />
+    </Link>
+    <button
+      onClick={() => handleDelete(event.id)}
+      className="text-xs border border-[#E4E1D8] p-1.5 text-red-500 hover:bg-red-50 transition-colors"
+    >
+      <Trash2 size={13} />
+    </button>
+  </>
+)}   href="/dashboard/create"
       className="bg-[#14131F] text-white px-5 py-2.5 text-sm font-medium hover:bg-[#3730A9] transition-colors"
     >
       + Create event

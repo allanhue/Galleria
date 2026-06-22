@@ -177,6 +177,26 @@ export interface Report {
   reporter: User
 }
 
+export interface AttendeesResponse {
+  event: Event
+  attendees: Attendee[]
+  total: number
+  capacity: number
+  percentage: number
+}
+
+export interface OrganizerStats {
+  total_events: number
+  total_bookings: number
+  events: {
+    id: number
+    title: string
+    date: string
+    capacity: number
+    booked: number
+    percentage: number
+  }[]
+}
 
 
 export const profile = {
@@ -310,4 +330,16 @@ export const report = {
     api.put(`/admin/reports/${id}`, { status }),
 }
 
+
+export interface Attendee extends Booking {
+  user: User
+}
+
+
+export const organizerTools = {
+  getAttendees: (eventId: number) =>
+    api.get<AttendeesResponse>(`/events/${eventId}/attendees`),
+  getStats: () =>
+    api.get<OrganizerStats>('/dashboard/stats'),
+}
 export default api
