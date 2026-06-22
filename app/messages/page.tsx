@@ -103,7 +103,7 @@ export default function MessagesPage() {
               return (
                 <Link
                   key={convo.id}
-                  href={`/messages/${convo.id}`}
+href={`/messages/${convo.id}?otherUserId=${other.id}&otherName=${encodeURIComponent(other.name)}`}
                   className="flex items-center gap-3 px-4 py-3 border-b border-[#E4E1D8] last:border-b-0 hover:bg-[#FAF9F6] transition-colors"
                 >
                   <div className="w-10 h-10 rounded-full bg-[#EEEDFB] flex items-center justify-center overflow-hidden shrink-0">

@@ -5,6 +5,11 @@ import { messages, Message } from '@/app/lib/api'
 import Cookies from 'js-cookie'
 import Spinner from '@/app/components/spinner'
 import { ArrowLeft, Send } from 'lucide-react'
+import BlockButton from '@/app/components/block_button'
+import ReportModal from '@/app/components/report_modal'
+// import { messages as messagesApi } from '@/app/lib/api'
+import { useSearchParams } from 'next/navigation'
+
 
 export default function ChatPage() {
   const { id } = useParams()
@@ -14,7 +19,12 @@ export default function ChatPage() {
   const [draft, setDraft] = useState('')
   const [sending, setSending] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<number | null>(null)
+  const [reportTarget, setReportTarget] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+const searchParams = useSearchParams()
+const otherUserId = Number(searchParams.get('otherUserId'))
+const otherName = searchParams.get('otherName') || 'User'
+
 
   useEffect(() => {
     const stored = Cookies.get('user')
@@ -73,6 +83,19 @@ export default function ChatPage() {
         Back to messages
       </button>
 
+      <div className="flex items-center justify-between border-b border-[#E4E1D8] pb-3 mb-3">
+        <span className="text-sm font-medium">{otherName}</span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setReportTarget(true)}
+            className="text-xs text-gray-400 hover:text-red-500"
+          >
+            Report
+          </button>
+          {otherUserId && <BlockButton userId={otherUserId} onBlocked={() => router.push('/messages')} />}
+        </div>
+      </div>
+
       <div className="flex-1 overflow-y-auto border border-[#E4E1D8] bg-white p-4 flex flex-col gap-3">
         {items.length === 0 ? (
           <p className="text-sm text-gray-400 text-center my-auto">
@@ -118,6 +141,14 @@ export default function ChatPage() {
           <Send size={16} />
         </button>
       </form>
+
+      {reportTarget && (
+        <ReportModal
+          targetType="user"
+          targetId={otherUserId}
+          onClose={() => setReportTarget(false)}
+        />
+      )}
     </main>
   )
 }
