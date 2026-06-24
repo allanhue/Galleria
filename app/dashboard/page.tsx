@@ -1,11 +1,11 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { events, Event } from '@/app/lib/api'
+import { events, organizerTools, Event } from '@/app/lib/api'
 import Spinner from '@/app/components/spinner'
 import Cookies from 'js-cookie'
 import Link from 'next/link'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2, Users } from 'lucide-react'
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -13,13 +13,6 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
   const [stats, setStats] = useState<{ total_events: number; total_bookings: number } | null>(null)
-
-useEffect(() => {
-  // existing effect, add this fetch alongside
-  organizerTools.getStats()
-    .then((res) => setStats(res.data))
-    .catch(console.error)
-}, [])
 
   useEffect(() => {
     const stored = Cookies.get('user')
@@ -34,6 +27,10 @@ useEffect(() => {
       .then((res) => setMyEvents(res.data.events || []))
       .catch(console.error)
       .finally(() => setLoading(false))
+
+    organizerTools.getStats()
+      .then((res) => setStats(res.data))
+      .catch(console.error)
   }, [])
 
   const handleDelete = async (eventId: number) => {
@@ -54,48 +51,24 @@ useEffect(() => {
     <main className="flex flex-col gap-8">
 
       {/* Header */}
-<div className="flex items-center justify-end">
-  {user?.role === 'organizer' && (
-    <Link
-   {user?.role === 'organizer' && event.organizer_id === user.id && (
-  <>
-    <Link
-      href={`/dashboard/attendees/${event.id}`}
-      className="text-xs border border-[#E4E1D8] p-1.5 hover:bg-[#FAF9F6] transition-colors"
-    >
-      <Users size={13} />
-    </Link>
-    <Link
-      href={`/dashboard/edit/${event.id}`}
-      className="text-xs border border-[#E4E1D8] p-1.5 hover:bg-[#FAF9F6] transition-colors"
-    >
-      <Pencil size={13} />
-    </Link>
-    <button
-      onClick={() => handleDelete(event.id)}
-      className="text-xs border border-[#E4E1D8] p-1.5 text-red-500 hover:bg-red-50 transition-colors"
-    >
-      <Trash2 size={13} />
-    </button>
-  </>
-)}   href="/dashboard/create"
-      className="bg-[#14131F] text-white px-5 py-2.5 text-sm font-medium hover:bg-[#3730A9] transition-colors"
-    >
-      + Create event
-    </Link>
-  )}
-</div>
+      <div className="flex items-center justify-end">
+        {user?.role === 'organizer' && (
+          <Link
+            href="/dashboard/create"
+            className="bg-[#14131F] text-white px-5 py-2.5 text-sm font-medium hover:bg-[#3730A9] transition-colors"
+          >
+            + Create event
+          </Link>
+        )}
+      </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: 'Your events', value: myOwnEvents.length },
-          { label: 'Total events', value: myEvents.length },
+          { label: 'Your events',    value: stats?.total_events ?? 0 },
+          { label: 'Total bookings', value: stats?.total_bookings ?? 0 },
         ].map((stat) => (
-          <div
-            key={stat.label}
-            className="border border-[#E4E1D8] p-4 flex flex-col gap-1 bg-white"
-          >
+          <div key={stat.label} className="border border-[#E4E1D8] p-4 flex flex-col gap-1 bg-white">
             <p className="text-xs text-gray-400">{stat.label}</p>
             <p className="text-2xl font-semibold tracking-tight">{stat.value}</p>
           </div>
@@ -159,6 +132,12 @@ useEffect(() => {
                   </Link>
                   {user?.role === 'organizer' && event.organizer_id === user.id && (
                     <>
+                      <Link
+                        href={`/dashboard/attendees/${event.id}`}
+                        className="text-xs border border-[#E4E1D8] p-1.5 hover:bg-[#FAF9F6] transition-colors"
+                      >
+                        <Users size={13} />
+                      </Link>
                       <Link
                         href={`/dashboard/edit/${event.id}`}
                         className="text-xs border border-[#E4E1D8] p-1.5 hover:bg-[#FAF9F6] transition-colors"
