@@ -151,7 +151,7 @@ function EventsContent() {
   )
 }
 
-export default function EventsPage() {
+export default function EventsPage() { 
   return (
     <main className="flex flex-col gap-6">
       <Suspense fallback={<p className="text-gray-400 text-sm">Loading...</p>}>
