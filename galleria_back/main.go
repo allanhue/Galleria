@@ -35,6 +35,8 @@ db.DB.AutoMigrate(
 
 	&models.Block{},
 	&models.Report{},
+	&models.PasswordReset{},
+	&models.Review{},
 )
 
 
@@ -63,7 +65,17 @@ db.DB.AutoMigrate(
 	r.GET("/events", handlers.GetAllEvents)
 	r.GET("/events/:id", handlers.GetEvent)
 	r.GET("/events/cities", handlers.GetCities)
-	r.GET("/events/feed", handlers.GetFeedEvents) 
+	r.GET("/events/feed", handlers.GetFeedEvents)
+	r.POST("/auth/forgot-password", handlers.ForgotPassword)
+r.POST("/auth/reset-password",  handlers.ResetPassword)
+r.GET("/events/trending", handlers.GetTrendingEvents)
+r.GET("/events/cities",   handlers.GetCities)
+r.GET("/events",          handlers.GetAllEvents)
+r.GET("/events/:id",      handlers.GetEvent)
+r.GET("/events/:id/reviews",      handlers.GetEventReviews)
+
+
+
 	// Protected routes
 	protected := r.Group("/")
 	protected.Use(middleware.AuthMiddleware())
@@ -112,6 +124,8 @@ protected.PUT("/admin/reports/:id", handlers.UpdateReportStatus)
 protected.GET("/events/:id/attendees", handlers.GetEventAttendees)
 protected.GET("/dashboard/stats",      handlers.GetOrganizerStats)
 protected.GET("/messages/unread", handlers.GetUnreadCount)
+protected.POST("/events/:id/review", handlers.CreateReview)
+
 
 	}
 

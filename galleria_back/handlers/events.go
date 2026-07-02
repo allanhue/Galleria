@@ -5,39 +5,12 @@ import (
 	"galleria_back/models"
 	"galleria_back/services"
 	"net/http"
-
+    "math"
+	"strconv"
 	"github.com/gin-gonic/gin"
 )
 
-func GetAllEvents(c *gin.Context) {
-	category := c.Query("category")
-	city := c.Query("city")
-	country := c.Query("country")
-	search := c.Query("search")
 
-	var dbEvents []models.Event
-	query := db.DB
-
-	if category != "" {
-		query = query.Where("category = ?", category)
-	}
-	if city != "" {
-		query = query.Where("city ILIKE ?", "%"+city+"%")
-	}
-	if country != "" {
-		query = query.Where("country ILIKE ?", "%"+country+"%")
-	}
-	if search != "" {
-		query = query.Where("title ILIKE ? OR description ILIKE ? OR location ILIKE ?",
-			"%"+search+"%", "%"+search+"%", "%"+search+"%")
-	}
-
-	query.Find(&dbEvents)
-
-	c.JSON(http.StatusOK, gin.H{
-		"events": dbEvents,
-	})
-}
 func GetCities(c *gin.Context) {
 	var cities []string
 	db.DB.Model(&models.Event{}).Distinct().Pluck("city", &cities)
@@ -218,30 +191,44 @@ func DeleteEvent(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Event deleted"})
 }
 
-func GetEventAttendees(c *gin.Context) {
-	id := c.Param("id")
-	userID, _ := c.Get("user_id")
+func GetAllEvents(c *gin.Context) {
+	category := c.Query("category")
+	city     := c.Query("city")
+	country  := c.Query("country")
+	search   := c.Query("search")
+	page     := 1
+	limit    := 12
 
-	var event models.Event
-	if err := db.DB.First(&event, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
-		return
+	if p := c.Query("page"); p != "" {
+		if n, err := strconv.Atoi(p); err == nil && n > 0 {
+			page = n
+		}
+	}
+	offset := (page - 1) * limit
+
+	query := db.DB.Model(&models.Event{})
+	if category != "" { query = query.Where("category = ?", category) }
+	if city     != "" { query = query.Where("city ILIKE ?",     "%"+city+"%") }
+	if country  != "" { query = query.Where("country ILIKE ?",  "%"+country+"%") }
+	if search   != "" {
+		query = query.Where("title ILIKE ? OR description ILIKE ? OR location ILIKE ?",
+			"%"+search+"%", "%"+search+"%", "%"+search+"%")
 	}
 
-	if event.OrganizerID != userID.(uint) {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Only the organizer can view attendees"})
-		return
-	}
+	var total int64
+	query.Count(&total)
 
-	var bookings []models.Booking
-	db.DB.Preload("User").Where("event_id = ? AND status = ?", id, "confirmed").
-		Order("created_at asc").Find(&bookings)
+	var dbEvents []models.Event
+	query.Order("created_at desc").Limit(limit).Offset(offset).Find(&dbEvents)
 
 	c.JSON(http.StatusOK, gin.H{
-		"event":      event,
-		"attendees":  bookings,
-		"total":      len(bookings),
-		"capacity":   event.Capacity,
-		"percentage": int(float64(len(bookings)) / float64(event.Capacity) * 100),
+		"events":  dbEvents,
+		"total":   total,
+		"page":    page,
+		"limit":   limit,
+		"pages":   int(math.Ceil(float64(total) / float64(limit))),
 	})
 }
+
+
+
