@@ -1,12 +1,11 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { events, organizerTools, Event } from '@/app/lib/api'
+import { events, Event, organizerTools } from '@/app/lib/api'
 import Spinner from '@/app/components/spinner'
 import Cookies from 'js-cookie'
 import Link from 'next/link'
 import { Pencil, Trash2, Users } from 'lucide-react'
-// import { events, Event, organizerTools } from '@/app/lib/api'
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -64,41 +63,17 @@ const [stats, setStats] = useState<{ total_events: number; total_bookings: numbe
       </div>
 
       {/* Stats */}
-<div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-  {[
-    { label: 'Your events',     value: stats?.total_events ?? 0 },
-    { label: 'Total bookings',  value: stats?.total_bookings ?? 0 },
-  ].map((stat) => (
-    <div key={stat.label} className="border border-[#E4E1D8] p-4 flex flex-col gap-1 bg-white">
-      <p className="text-xs text-gray-400">{stat.label}</p>
-      <p className="text-2xl font-semibold tracking-tight">{stat.value}</p>
-    </div>
-  ))}
-</div>
-
-      {/* Role badge */}
-{user?.role === 'organizer' && event.organizer_id === user.id && (
-  <>
-    <Link
-      href={`/dashboard/attendees/${event.id}`}
-      className="text-xs border border-[#E4E1D8] p-1.5 hover:bg-[#FAF9F6] transition-colors"
-    >
-      <Users size={13} />
-    </Link>
-    <Link
-      href={`/dashboard/edit/${event.id}`}
-      className="text-xs border border-[#E4E1D8] p-1.5 hover:bg-[#FAF9F6] transition-colors"
-    >
-      <Pencil size={13} />
-    </Link>
-    <button
-      onClick={() => handleDelete(event.id)}
-      className="text-xs border border-[#E4E1D8] p-1.5 text-red-500 hover:bg-red-50 transition-colors"
-    >
-      <Trash2 size={13} />
-    </button>
-  </>
-)}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {[
+          { label: 'Your events', value: stats?.total_events ?? 0 },
+          { label: 'Total bookings', value: stats?.total_bookings ?? 0 },
+        ].map((stat) => (
+          <div key={stat.label} className="border border-[#E4E1D8] p-4 flex flex-col gap-1 bg-white">
+            <p className="text-xs text-gray-400">{stat.label}</p>
+            <p className="text-2xl font-semibold tracking-tight">{stat.value}</p>
+          </div>
+        ))}
+      </div>
 
       {/* Events list */}
       <div className="flex flex-col gap-4">
