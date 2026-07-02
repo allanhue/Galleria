@@ -5,15 +5,25 @@ import Cookies from 'js-cookie'
 import { useState, useEffect } from 'react'
 import {
   Compass, CalendarDays, Users, Bookmark,
-  LayoutDashboard, Menu, X, LogOut, UserCircle2, Gem,MessageSquare,Sparkles
+  LayoutDashboard, Menu, X, LogOut, UserCircle2, Gem, MessageSquare, Sparkles,
+  type LucideIcon
 } from 'lucide-react'
 import NotificationBell from '@/app/components/notification_bell'
+import { messages } from '@/app/lib/api'
+
+type NavLink = {
+  href: string
+  label: string
+  icon: LucideIcon
+  badge?: number
+}
 
 export default function Navbar() {
   const pathname = usePathname()
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [open, setOpen] = useState(false)
+  const [unreadMessages, setUnreadMessages] = useState(0)
 
   useEffect(() => {
     const readUser = () => {
@@ -30,6 +40,21 @@ export default function Navbar() {
     return () => window.removeEventListener('focus', readUser)
   }, [pathname])
 
+  //unread messages count
+  useEffect(() => {
+  const fetchUnread = () => {
+    const token = Cookies.get('token')
+    if (!token) return
+    messages.getUnreadCount()
+      .then((res) => setUnreadMessages(res.data.unread))
+      .catch(console.error)
+  }
+  fetchUnread()
+  const interval = setInterval(fetchUnread, 10000)
+  return () => clearInterval(interval)
+}, [user])
+
+
   const handleLogout = () => {
     Cookies.remove('token')
     Cookies.remove('user')
@@ -38,15 +63,15 @@ export default function Navbar() {
     router.push('/auth/login')
   }
 
- const publicLinks = [
+ const publicLinks: NavLink[] = [
   { href: '/',          label: 'Home',      icon: Compass },
   { href: '/events',    label: 'Events',    icon: CalendarDays },
   { href: '/community', label: 'Community', icon: Users },
 ]
 
-const authLinks = user ? [
+const authLinks: NavLink[] = user ? [
   { href: '/bookings', label: 'Bookings', icon: Bookmark },
-  { href: '/messages', label: 'Messages', icon: MessageSquare },
+  { href: '/messages',  label: 'Messages',  icon: MessageSquare,  badge: unreadMessages },
   { href: '/discover',  label: 'People',   icon: Sparkles },
   { href: '/profile',   label: 'Profile',  icon: UserCircle2 },
   ...(user?.role === 'organizer'
@@ -68,24 +93,29 @@ const links = [...publicLinks, ...authLinks]
 
         {/* Desktop links */}
         <div className="hidden md:flex items-center gap-1">
-          {links.map((link) => {
-            const Icon = link.icon
-            const active = pathname === link.href
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`flex items-center gap-1.5 text-sm px-3 py-1.5 transition-colors ${
-                  active
-                    ? 'text-[#3730A9] font-medium bg-[#EEEDFB]'
-                    : 'text-gray-500 hover:text-[#14131F]'
-                }`}
-              >
-                <Icon size={15} strokeWidth={2} />
-                {link.label}
-              </Link>
-            )
-          })}
+{links.map((link) => {
+  const Icon = link.icon
+  const active = pathname === link.href
+  return (
+    <Link
+      key={link.href}
+      href={link.href}
+      className={`relative flex items-center gap-1.5 text-sm px-3 py-1.5 transition-colors ${
+        active
+          ? 'text-[#3730A9] font-medium bg-[#EEEDFB]'
+          : 'text-gray-500 hover:text-[#14131F]'
+      }`}
+    >
+      <Icon size={15} strokeWidth={2} />
+      {link.label}
+      {typeof link.badge === 'number' && link.badge > 0 && (
+        <span className="absolute -top-1 -right-1 bg-[#3730A9] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
+          {link.badge > 9 ? '9+' : link.badge}
+        </span>
+      )}
+    </Link>
+  )
+})}
         </div>
 
         {/* Desktop auth */}
@@ -129,22 +159,27 @@ const links = [...publicLinks, ...authLinks]
       {/* Mobile menu */}
       {open && (
         <div className="md:hidden border-t border-[#E4E1D8] mt-3 pt-3 flex flex-col gap-1 px-2 pb-3">
-          {links.map((link) => {
-            const Icon = link.icon
-            const active = pathname === link.href
+          {links.map((item) => {
+            const Icon = item.icon
+            const active = pathname === item.href
             return (
               <Link
-                key={link.href}
-                href={link.href}
+                key={item.href}
+                href={item.href}
                 onClick={() => setOpen(false)}
-                className={`flex items-center gap-2.5 text-sm px-3 py-2.5 ${
+                className={`relative flex items-center gap-2.5 text-sm px-3 py-2.5 ${
                   active
                     ? 'bg-[#EEEDFB] text-[#3730A9] font-medium'
                     : 'text-gray-500 hover:bg-white'
                 }`}
               >
                 <Icon size={16} />
-                {link.label}
+                {item.label}
+                {typeof item.badge === 'number' && item.badge > 0 && (
+                  <span className="ml-auto bg-[#3730A9] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
+                    {item.badge > 9 ? '9+' : item.badge}
+                  </span>
+                )}
               </Link>
             )
           })}

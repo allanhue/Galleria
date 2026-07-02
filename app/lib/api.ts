@@ -299,6 +299,8 @@ export const messages = {
   getMessages: (conversationId: number) => api.get<Message[]>(`/messages/${conversationId}`),
   send: (conversationId: number, body: string) =>
     api.post<Message>(`/messages/${conversationId}`, { body }),
+  //unread messages api
+  getUnreadCount: () => api.get<{ unread: number }>('/messages/unread'),
 }
 
 
