@@ -10,6 +10,33 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func GetEventAttendees(c *gin.Context) {
+	id := c.Param("id")
+	userID, _ := c.Get("user_id")
+
+	var event models.Event
+	if err := db.DB.First(&event, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+		return
+	}
+
+	if event.OrganizerID != userID.(uint) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only the organizer can view attendees"})
+		return
+	}
+
+	var bookings []models.Booking
+	db.DB.Preload("User").Where("event_id = ? AND status = ?", id, "confirmed").
+		Order("created_at asc").Find(&bookings)
+
+	c.JSON(http.StatusOK, gin.H{
+		"event":      event,
+		"attendees":  bookings,
+		"total":      len(bookings),
+		"capacity":   event.Capacity,
+		"percentage": int(float64(len(bookings)) / float64(event.Capacity) * 100),
+	})
+}
 
 func GetCities(c *gin.Context) {
 	var cities []string
