@@ -111,6 +111,7 @@ protected.GET("/admin/reports",     handlers.GetReports)
 protected.PUT("/admin/reports/:id", handlers.UpdateReportStatus)
 protected.GET("/events/:id/attendees", handlers.GetEventAttendees)
 protected.GET("/dashboard/stats",      handlers.GetOrganizerStats)
+protected.GET("/messages/unread", handlers.GetUnreadCount)
 
 	}
 

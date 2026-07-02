@@ -148,3 +148,16 @@ func SendMessage(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, message)
 }
+
+func GetUnreadCount(c *gin.Context) {
+	userID, _ := c.Get("user_id")
+
+	var unread int64
+	db.DB.Model(&models.Message{}).
+		Joins("JOIN conversations ON conversations.id = messages.conversation_id").
+		Where("(conversations.user_a_id = ? OR conversations.user_b_id = ?)", userID, userID).
+		Where("messages.sender_id != ? AND messages.read = ?", userID, false).
+		Count(&unread)
+
+	c.JSON(http.StatusOK, gin.H{"unread": unread})
+}
