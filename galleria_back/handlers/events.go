@@ -258,4 +258,36 @@ func GetAllEvents(c *gin.Context) {
 }
 
 
+func GetTrendingEvents(c *gin.Context) {
+	type TrendingEvent struct {
+		models.Event
+		BookingCount int64 `json:"booking_count"`
+	}
 
+	var events []models.Event
+	db.DB.Find(&events)
+
+	trending := []TrendingEvent{}
+	for _, e := range events {
+		var count int64
+		db.DB.Model(&models.Booking{}).
+			Where("event_id = ? AND status = ?", e.ID, "confirmed").
+			Count(&count)
+		trending = append(trending, TrendingEvent{Event: e, BookingCount: count})
+	}
+
+	// sort by booking count descending
+	for i := 0; i < len(trending)-1; i++ {
+		for j := i + 1; j < len(trending); j++ {
+			if trending[j].BookingCount > trending[i].BookingCount {
+				trending[i], trending[j] = trending[j], trending[i]
+			}
+		}
+	}
+
+	if len(trending) > 6 {
+		trending = trending[:6]
+	}
+
+	c.JSON(http.StatusOK, trending)
+}
