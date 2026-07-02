@@ -4,7 +4,12 @@ import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Cookies from 'js-cookie'
 import { Eye, EyeOff } from 'lucide-react'
+import type { AxiosError } from 'axios'
 import { auth } from '@/app/lib/api'
+
+type ErrorResponse = {
+  error?: string
+}
 
 export default function LoginClient() {
   const router = useRouter()
@@ -24,8 +29,9 @@ export default function LoginClient() {
       Cookies.set('token', res.data.token, { expires: 7 })
       Cookies.set('user', JSON.stringify(res.data.user), { expires: 7 })
       router.push('/')
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Login failed')
+    } catch (err: unknown) {
+      const error = err as AxiosError<ErrorResponse>
+      setError(error.response?.data?.error || 'Login failed')
     } finally {
       setLoading(false)
     }
