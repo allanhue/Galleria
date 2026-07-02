@@ -83,12 +83,14 @@ const authLinks: NavLink[] = user ? [
 const links = [...publicLinks, ...authLinks]
 
   return (
-    <nav className="border-b border-[#E4E1D8] px-4 py-3 sticky top-0 bg-[#FAF9F6] z-10">
+    <nav className="sticky top-0 z-10 border-b border-[#E4E1D8] bg-[#FAF9F6]/95 px-4 py-3 backdrop-blur">
       <div className="max-w-6xl mx-auto flex items-center justify-between">
 
-        <Link href="/" className="font-semibold text-lg tracking-tight flex items-center gap-2">
-          <Gem size={20} className="text-[#3730A9]" strokeWidth={2.2} />
-          Galleria
+        <Link href="/" className="group flex items-center gap-2 font-semibold tracking-tight">
+          <span className="flex h-8 w-8 items-center justify-center border border-[#E4E1D8] bg-white transition-colors group-hover:border-[#3730A9]">
+            <Gem size={18} className="text-[#3730A9]" strokeWidth={2.2} />
+          </span>
+          <span className="text-lg">Galleria</span>
         </Link>
 
         {/* Desktop links */}
@@ -100,16 +102,16 @@ const links = [...publicLinks, ...authLinks]
     <Link
       key={link.href}
       href={link.href}
-      className={`relative flex items-center gap-1.5 text-sm px-3 py-1.5 transition-colors ${
+      className={`relative flex items-center gap-1.5 border border-transparent px-3 py-1.5 text-sm transition-colors ${
         active
-          ? 'text-[#3730A9] font-medium bg-[#EEEDFB]'
-          : 'text-gray-500 hover:text-[#14131F]'
+          ? 'border-[#D9D6F5] bg-[#EEEDFB] font-medium text-[#3730A9]'
+          : 'text-gray-500 hover:border-[#E4E1D8] hover:bg-white hover:text-[#14131F]'
       }`}
     >
       <Icon size={15} strokeWidth={2} />
       {link.label}
       {typeof link.badge === 'number' && link.badge > 0 && (
-        <span className="absolute -top-1 -right-1 bg-[#3730A9] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
+        <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center bg-[#3730A9] text-[10px] text-white">
           {link.badge > 9 ? '9+' : link.badge}
         </span>
       )}
@@ -123,13 +125,13 @@ const links = [...publicLinks, ...authLinks]
           {user ? (
             <>
               <NotificationBell />
-              <span className="flex items-center gap-1.5 text-sm text-gray-500">
-                <UserCircle2 size={16} />
-                {user.name}
+              <span className="flex max-w-40 items-center gap-1.5 truncate border-l border-[#E4E1D8] pl-3 text-sm text-gray-500">
+                <UserCircle2 size={16} className="shrink-0" />
+                <span className="truncate">{user.name}</span>
               </span>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-1.5 text-sm border border-[#E4E1D8] px-3 py-1.5 hover:bg-white transition-colors"
+                className="flex items-center gap-1.5 border border-[#E4E1D8] bg-white px-3 py-1.5 text-sm transition-colors hover:border-[#3730A9]/30 hover:text-[#3730A9]"
               >
                 <LogOut size={14} />
                 Sign out
@@ -137,10 +139,10 @@ const links = [...publicLinks, ...authLinks]
             </>
           ) : (
             <>
-              <Link href="/auth/login" className="text-sm text-gray-500 hover:text-[#14131F]">
+              <Link href="/auth/login" className="text-sm font-medium text-gray-500 transition-colors hover:text-[#14131F]">
                 Sign in
               </Link>
-              <Link href="/auth/register" className="text-sm bg-[#14131F] text-white px-4 py-1.5">
+              <Link href="/auth/register" className="bg-[#14131F] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#3730A9]">
                 Register
               </Link>
             </>
@@ -149,8 +151,9 @@ const links = [...publicLinks, ...authLinks]
 
         {/* Mobile toggle */}
         <button
-          className="md:hidden text-gray-500 hover:text-[#14131F]"
+          className="flex h-9 w-9 items-center justify-center border border-[#E4E1D8] bg-white text-gray-500 transition-colors hover:text-[#14131F] md:hidden"
           onClick={() => setOpen(!open)}
+          aria-label={open ? 'Close menu' : 'Open menu'}
         >
           {open ? <X size={20} /> : <Menu size={20} />}
         </button>
@@ -158,7 +161,7 @@ const links = [...publicLinks, ...authLinks]
 
       {/* Mobile menu */}
       {open && (
-        <div className="md:hidden border-t border-[#E4E1D8] mt-3 pt-3 flex flex-col gap-1 px-2 pb-3">
+        <div className="mx-auto mt-3 flex max-w-6xl flex-col gap-1 border-t border-[#E4E1D8] bg-[#FAF9F6] pt-3 md:hidden">
           {links.map((item) => {
             const Icon = item.icon
             const active = pathname === item.href
@@ -167,29 +170,29 @@ const links = [...publicLinks, ...authLinks]
                 key={item.href}
                 href={item.href}
                 onClick={() => setOpen(false)}
-                className={`relative flex items-center gap-2.5 text-sm px-3 py-2.5 ${
+                className={`relative flex items-center gap-2.5 px-3 py-2.5 text-sm transition-colors ${
                   active
                     ? 'bg-[#EEEDFB] text-[#3730A9] font-medium'
-                    : 'text-gray-500 hover:bg-white'
+                    : 'text-gray-500 hover:bg-[#FAF9F6] hover:text-[#14131F]'
                 }`}
               >
                 <Icon size={16} />
                 {item.label}
                 {typeof item.badge === 'number' && item.badge > 0 && (
-                  <span className="ml-auto bg-[#3730A9] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
+                  <span className="ml-auto flex h-4 w-4 items-center justify-center rounded-full bg-[#3730A9] text-[10px] text-white">
                     {item.badge > 9 ? '9+' : item.badge}
                   </span>
                 )}
               </Link>
             )
           })}
-          <div className="border-t border-[#E4E1D8] mt-2 pt-2">
+          <div className="mt-2 border-t border-[#E4E1D8] pt-2">
             {user ? (
               <>
-                <p className="text-xs text-gray-400 px-3 py-1">{user.email}</p>
+                <p className="truncate px-3 py-1 text-xs text-gray-400">{user.email}</p>
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2.5 text-left text-sm px-3 py-2.5 text-red-500 hover:bg-red-50"
+                  className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm text-red-500 transition-colors hover:bg-red-50"
                 >
                   <LogOut size={16} />
                   Sign out
@@ -200,14 +203,14 @@ const links = [...publicLinks, ...authLinks]
                 <Link
                   href="/auth/login"
                   onClick={() => setOpen(false)}
-                  className="block text-sm px-3 py-2.5 text-gray-500 hover:bg-white"
+                  className="block px-3 py-2.5 text-sm text-gray-500 transition-colors hover:bg-[#FAF9F6] hover:text-[#14131F]"
                 >
                   Sign in
                 </Link>
                 <Link
                   href="/auth/register"
                   onClick={() => setOpen(false)}
-                  className="block text-sm px-3 py-2.5 bg-[#14131F] text-white mt-1 text-center"
+                  className="mt-1 block bg-[#14131F] px-3 py-2.5 text-center text-sm font-medium text-white transition-colors hover:bg-[#3730A9]"
                 >
                   Register
                 </Link>

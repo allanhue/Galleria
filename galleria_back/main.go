@@ -18,33 +18,26 @@ func main() {
 
 	db.Connect()
 
-db.DB.AutoMigrate(
-	&models.User{},
-	&models.Event{},
-	&models.Booking{},
-	&models.CommunityPost{},
-	&models.Vote{},
-	&models.FeedEvent{},
-	&models.PostComment{},
-	&models.SavedPost{},
-	&models.Repost{},
-	&models.Notification{}, 
-	&models.Follow{},       
-	&models.Conversation{}, 
-	&models.Message{},      
+	db.DB.AutoMigrate(
+		&models.User{},
+		&models.Event{},
+		&models.Booking{},
+		&models.CommunityPost{},
+		&models.Vote{},
+		&models.FeedEvent{},
+		&models.PostComment{},
+		&models.SavedPost{},
+		&models.Repost{},
+		&models.Notification{},
+		&models.Follow{},
+		&models.Conversation{},
+		&models.Message{},
 
-	&models.Block{},
-	&models.Report{},
-	&models.PasswordReset{},
-	&models.Review{},
-)
-
-
-
-
-
-
-
+		&models.Block{},
+		&models.Report{},
+		&models.PasswordReset{},
+		&models.Review{},
+	)
 
 	db.SeedEvents()
 	services.StartFeedScheduler()
@@ -62,19 +55,14 @@ db.DB.AutoMigrate(
 	// Public routes
 	r.POST("/auth/register", handlers.Register)
 	r.POST("/auth/login", handlers.Login)
-	r.GET("/events", handlers.GetAllEvents)
-	r.GET("/events/:id", handlers.GetEvent)
-	r.GET("/events/cities", handlers.GetCities)
 	r.GET("/events/feed", handlers.GetFeedEvents)
 	r.POST("/auth/forgot-password", handlers.ForgotPassword)
-r.POST("/auth/reset-password",  handlers.ResetPassword)
-r.GET("/events/trending", handlers.GetTrendingEvents)
-r.GET("/events/cities",   handlers.GetCities)
-r.GET("/events",          handlers.GetAllEvents)
-r.GET("/events/:id",      handlers.GetEvent)
-r.GET("/events/:id/reviews",      handlers.GetEventReviews)
-
-
+	r.POST("/auth/reset-password", handlers.ResetPassword)
+	r.GET("/events/trending", handlers.GetTrendingEvents)
+	r.GET("/events/cities", handlers.GetCities)
+	r.GET("/events", handlers.GetAllEvents)
+	r.GET("/events/:id", handlers.GetEvent)
+	r.GET("/events/:id/reviews", handlers.GetEventReviews)
 
 	// Protected routes
 	protected := r.Group("/")
@@ -88,44 +76,43 @@ r.GET("/events/:id/reviews",      handlers.GetEventReviews)
 		protected.POST("/community", handlers.CreatePost)
 		protected.POST("/community/:id/vote", handlers.VotePost)
 		// inside protected group
-protected.POST("/community/:id/comment", handlers.AddComment)
-protected.GET("/community/:id/comments", handlers.GetComments)
-protected.POST("/community/:id/save",    handlers.ToggleSave)
-protected.GET("/community/saved",        handlers.GetMySaved)
-protected.POST("/community/:id/repost",  handlers.RepostPost)
-protected.DELETE("/community/comment/:commentId", handlers.DeleteComment)
-protected.GET("/profile/me", handlers.GetMyProfile)
-protected.PUT("/profile/avatar", handlers.UpdateAvatar)
-protected.GET("/notifications",       handlers.GetNotifications)
-protected.PUT("/notifications/read",  handlers.MarkNotificationsRead)
-protected.PUT("/events/:id",    handlers.UpdateEvent)
-protected.DELETE("/events/:id", handlers.DeleteEvent)
-protected.DELETE("/community/:id", handlers.DeletePost)
+		protected.POST("/community/:id/comment", handlers.AddComment)
+		protected.GET("/community/:id/comments", handlers.GetComments)
+		protected.POST("/community/:id/save", handlers.ToggleSave)
+		protected.GET("/community/saved", handlers.GetMySaved)
+		protected.POST("/community/:id/repost", handlers.RepostPost)
+		protected.DELETE("/community/comment/:commentId", handlers.DeleteComment)
+		protected.GET("/profile/me", handlers.GetMyProfile)
+		protected.PUT("/profile/avatar", handlers.UpdateAvatar)
+		protected.GET("/notifications", handlers.GetNotifications)
+		protected.PUT("/notifications/read", handlers.MarkNotificationsRead)
+		protected.PUT("/events/:id", handlers.UpdateEvent)
+		protected.DELETE("/events/:id", handlers.DeleteEvent)
+		protected.DELETE("/community/:id", handlers.DeletePost)
 
-// inside protected group
-protected.POST("/follow/:userId",        handlers.FollowUser)
-protected.DELETE("/follow/:userId",      handlers.UnfollowUser)
-protected.GET("/follow/:userId/status",  handlers.GetFollowStatus)
+		// inside protected group
+		protected.POST("/follow/:userId", handlers.FollowUser)
+		protected.DELETE("/follow/:userId", handlers.UnfollowUser)
+		protected.GET("/follow/:userId/status", handlers.GetFollowStatus)
 
-protected.POST("/messages/start/:userId", handlers.StartConversation)
-protected.GET("/messages/conversations",  handlers.GetConversations)
-protected.GET("/messages/:id",            handlers.GetMessages)
-protected.POST("/messages/:id",           handlers.SendMessage)
-protected.DELETE("/notifications/:id", handlers.DismissNotification)
-protected.GET("/discover/people", handlers.GetSuggestedPeople)
-protected.GET("/follow/following", handlers.GetMyFollowing)
-protected.POST("/block/:userId",   handlers.BlockUser)
-protected.DELETE("/block/:userId", handlers.UnblockUser)
-protected.GET("/block/mine",       handlers.GetMyBlocked)
+		protected.POST("/messages/start/:userId", handlers.StartConversation)
+		protected.GET("/messages/conversations", handlers.GetConversations)
+		protected.GET("/messages/:id", handlers.GetMessages)
+		protected.POST("/messages/:id", handlers.SendMessage)
+		protected.DELETE("/notifications/:id", handlers.DismissNotification)
+		protected.GET("/discover/people", handlers.GetSuggestedPeople)
+		protected.GET("/follow/following", handlers.GetMyFollowing)
+		protected.POST("/block/:userId", handlers.BlockUser)
+		protected.DELETE("/block/:userId", handlers.UnblockUser)
+		protected.GET("/block/mine", handlers.GetMyBlocked)
 
-protected.POST("/report",           handlers.CreateReport)
-protected.GET("/admin/reports",     handlers.GetReports)
-protected.PUT("/admin/reports/:id", handlers.UpdateReportStatus)
-protected.GET("/events/:id/attendees", handlers.GetEventAttendees)
-protected.GET("/dashboard/stats",      handlers.GetOrganizerStats)
-protected.GET("/messages/unread", handlers.GetUnreadCount)
-protected.POST("/events/:id/review", handlers.CreateReview)
-
+		protected.POST("/report", handlers.CreateReport)
+		protected.GET("/admin/reports", handlers.GetReports)
+		protected.PUT("/admin/reports/:id", handlers.UpdateReportStatus)
+		protected.GET("/events/:id/attendees", handlers.GetEventAttendees)
+		protected.GET("/dashboard/stats", handlers.GetOrganizerStats)
+		protected.GET("/messages/unread", handlers.GetUnreadCount)
+		protected.POST("/events/:id/review", handlers.CreateReview)
 
 	}
 

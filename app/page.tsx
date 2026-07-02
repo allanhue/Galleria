@@ -83,39 +83,54 @@ export default function HomePage() {
       {/* Trending */}
       {trending.length > 0 && (
         <section className="flex flex-col gap-4">
-          <p className="text-xs uppercase tracking-wide text-gray-400 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 bg-[#3730A9]" />
-            Trending now
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-[#3730A9]">
+                Trending now
+              </p>
+              <h2 className="mt-1 text-lg font-medium">Popular with the community</h2>
+            </div>
+            <Link
+              href="/events"
+              className="hidden text-sm font-medium text-gray-500 hover:text-[#3730A9] sm:block"
+            >
+              View all
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {trending.map((event) => (
               <Link
                 key={event.id}
                 href={`/events/${event.id}`}
-                className="border border-[#E4E1D8] bg-white flex flex-col hover:shadow-sm transition-shadow"
+                className="group overflow-hidden border border-[#E4E1D8] bg-white transition hover:-translate-y-0.5 hover:shadow-[0_14px_35px_rgba(20,19,31,0.08)]"
               >
                 {event.photo_urls && event.photo_urls.length > 0 ? (
-                  <div className="aspect-video overflow-hidden">
+                  <div className="aspect-video overflow-hidden bg-[#FAF9F6]">
                     <img
                       src={event.photo_urls[0]}
                       alt={event.title}
-                      className="w-full h-full object-cover"
+                      className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
                     />
                   </div>
                 ) : (
-                  <div className="aspect-video bg-[#EEEDFB] flex items-center justify-center">
-                    <span className="w-2 h-2 bg-[#3730A9]" />
+                  <div className="aspect-video bg-[#EEEDFB] p-4">
+                    <div className="flex h-full items-center justify-center border border-[#D9D6F5] bg-white/45">
+                      <span className="h-2 w-2 bg-[#3730A9]" />
+                    </div>
                   </div>
                 )}
-                <div className="p-4 flex flex-col gap-1">
-                  <span className="text-xs text-gray-400 uppercase tracking-wide">
-                    {event.category}
-                  </span>
-                  <p className="text-sm font-medium line-clamp-1">{event.title}</p>
-                  <p className="text-xs text-gray-400">{event.location}</p>
-                  <p className="text-xs text-[#3730A9] font-medium mt-1">
-                    {event.booking_count} {event.booking_count === 1 ? 'person' : 'people'} going
-                  </p>
+                <div className="flex flex-col gap-2 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="bg-[#EEEDFB] px-2 py-1 text-[11px] font-medium text-[#3730A9]">
+                      {event.category}
+                    </span>
+                    <span className="text-xs font-medium text-[#3730A9]">
+                      {event.booking_count} {event.booking_count === 1 ? 'person' : 'people'} going
+                    </span>
+                  </div>
+                  <p className="line-clamp-1 text-sm font-medium">{event.title}</p>
+                  <p className="line-clamp-1 text-xs text-gray-400">{event.location}</p>
                 </div>
               </Link>
             ))}
