@@ -19,6 +19,8 @@ function EventsContent() {
   const [category, setCategory] = useState(searchParams.get('category') || '')
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 400)
@@ -28,13 +30,18 @@ function EventsContent() {
   useEffect(() => {
     setLoading(true)
     events
-      .getAll({ category, search: debouncedSearch })
+      .getAll({ category, search: debouncedSearch, page })
       .then((res) => {
         setDbEvents(res.data.events || [])
         setRssItems(res.data.rss || [])
+        setTotalPages(res.data.pages || 1)
       })
       .catch(console.error)
       .finally(() => setLoading(false))
+  }, [category, debouncedSearch, page])
+
+  useEffect(() => {
+    setPage(1)
   }, [category, debouncedSearch])
 
   return (
@@ -113,6 +120,28 @@ function EventsContent() {
                   </div>
                 ))}
               </div>
+
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 pt-4">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                    className="text-sm border border-[#E4E1D8] px-4 py-2 disabled:opacity-40 hover:bg-[#FAF9F6] transition-colors"
+                  >
+                    ← Previous
+                  </button>
+                  <span className="text-sm text-gray-500">
+                    {page} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={page === totalPages}
+                    className="text-sm border border-[#E4E1D8] px-4 py-2 disabled:opacity-40 hover:bg-[#FAF9F6] transition-colors"
+                  >
+                    Next →
+                  </button>
+                </div>
+              )}
             </section>
           )}
 

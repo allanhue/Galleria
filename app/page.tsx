@@ -1,3 +1,6 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   Music,
@@ -9,8 +12,18 @@ import {
   Code,
   Building2,
 } from 'lucide-react'
+import { events, TrendingEvent } from '@/app/lib/api'
 
 export default function HomePage() {
+  const [trending, setTrending] = useState<TrendingEvent[]>([])
+
+  useEffect(() => {
+    events
+      .getTrending()
+      .then((res) => setTrending(res.data || []))
+      .catch(console.error)
+  }, [])
+
   const categories = [
     { label: 'Music', Icon: Music },
     { label: 'Food & Drink', Icon: UtensilsCrossed },
@@ -66,6 +79,49 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* Trending */}
+      {trending.length > 0 && (
+        <section className="flex flex-col gap-4">
+          <p className="text-xs uppercase tracking-wide text-gray-400 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 bg-[#3730A9]" />
+            Trending now
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {trending.map((event) => (
+              <Link
+                key={event.id}
+                href={`/events/${event.id}`}
+                className="border border-[#E4E1D8] bg-white flex flex-col hover:shadow-sm transition-shadow"
+              >
+                {event.photo_urls && event.photo_urls.length > 0 ? (
+                  <div className="aspect-video overflow-hidden">
+                    <img
+                      src={event.photo_urls[0]}
+                      alt={event.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="aspect-video bg-[#EEEDFB] flex items-center justify-center">
+                    <span className="w-2 h-2 bg-[#3730A9]" />
+                  </div>
+                )}
+                <div className="p-4 flex flex-col gap-1">
+                  <span className="text-xs text-gray-400 uppercase tracking-wide">
+                    {event.category}
+                  </span>
+                  <p className="text-sm font-medium line-clamp-1">{event.title}</p>
+                  <p className="text-xs text-gray-400">{event.location}</p>
+                  <p className="text-xs text-[#3730A9] font-medium mt-1">
+                    {event.booking_count} {event.booking_count === 1 ? 'person' : 'people'} going
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Community CTA */}
       <section className="border rounded-xl p-6 flex flex-col gap-3 bg-gray-50">

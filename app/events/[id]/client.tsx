@@ -1,10 +1,41 @@
 'use client'
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { events, EventDetail } from '@/app/lib/api'
 import Cookies from 'js-cookie'
 import { Calendar, MapPin, Users, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react'
 import Spinner from '@/app/components/spinner'
+
+interface Review {
+  id: number
+  rating: number
+  comment: string
+  created_at: string
+  user: { name: string; avatar_url?: string }
+}
+
+function StarRating({ value, onChange, readonly = false }: {
+  value: number
+  onChange?: (v: number) => void
+  readonly?: boolean
+}) {
+  return (
+    <div className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          onClick={() => !readonly && onChange?.(star)}
+          className={`text-lg ${
+            star <= value ? 'text-yellow-400' : 'text-gray-200'
+          } ${!readonly ? 'hover:text-yellow-300 transition-colors cursor-pointer' : 'cursor-default'}`}
+        >
+          ★
+        </button>
+      ))}
+    </div>
+  )
+}
 
 export default function EventDetailClient() {
   const { id } = useParams()
@@ -14,12 +45,27 @@ export default function EventDetailClient() {
   const [booked, setBooked] = useState(false)
   const [booking, setBooking] = useState(false)
   const [error, setError] = useState('')
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [avgRating, setAvgRating] = useState(0)
+  const [myRating, setMyRating] = useState(0)
+  const [myComment, setMyComment] = useState('')
+  const [submittingReview, setSubmittingReview] = useState(false)
+  const [reviewError, setReviewError] = useState('')
+  const [reviewSuccess, setReviewSuccess] = useState(false)
 
   useEffect(() => {
     events.getOne(Number(id))
       .then((res) => setEvent(res.data))
       .catch(console.error)
       .finally(() => setLoading(false))
+
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/events/${id}/reviews`)
+      .then((r) => r.json())
+      .then((data) => {
+        setReviews(data.reviews || [])
+        setAvgRating(data.avg_rating || 0)
+      })
+      .catch(console.error)
   }, [id])
 
   const handleBook = async () => {
@@ -37,6 +83,34 @@ export default function EventDetailClient() {
       setError(err.response?.data?.error || 'Booking failed')
     } finally {
       setBooking(false)
+    }
+  }
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!myRating) return
+    setSubmittingReview(true)
+    setReviewError('')
+    try {
+      const token = Cookies.get('token')
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/events/${id}/review`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ rating: myRating, comment: myComment }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setReviews([data, ...reviews])
+      setReviewSuccess(true)
+      setMyRating(0)
+      setMyComment('')
+    } catch (err: any) {
+      setReviewError(err.message || 'Failed to submit review')
+    } finally {
+      setSubmittingReview(false)
     }
   }
 
@@ -135,6 +209,59 @@ export default function EventDetailClient() {
               >
                 {booking ? 'Booking...' : 'Book my spot'}
               </button>
+            )}
+          </div>
+
+          {/* Reviews section */}
+          <div className="flex flex-col gap-4 pt-4 border-t border-[#E4E1D8]">
+            <div className="flex items-center gap-3">
+              <StarRating value={Math.round(avgRating)} readonly />
+              <span className="text-sm text-gray-500">
+                {avgRating > 0 ? `${avgRating.toFixed(1)} · ${reviews.length} review${reviews.length !== 1 ? 's' : ''}` : 'No reviews yet'}
+              </span>
+            </div>
+
+            {booked && !reviewSuccess && (
+              <form onSubmit={handleReviewSubmit} className="border border-[#E4E1D8] p-4 flex flex-col gap-3">
+                <p className="text-sm font-medium">Leave a review</p>
+                <StarRating value={myRating} onChange={setMyRating} />
+                <textarea
+                  placeholder="Share your experience (optional)"
+                  value={myComment}
+                  onChange={(e) => setMyComment(e.target.value)}
+                  rows={3}
+                  className="border border-[#E4E1D8] px-3 py-2 text-sm outline-none focus:border-[#3730A9] resize-none"
+                />
+                {reviewError && <p className="text-xs text-red-500">{reviewError}</p>}
+                <button
+                  type="submit"
+                  disabled={!myRating || submittingReview}
+                  className="self-start bg-[#14131F] text-white px-5 py-2 text-sm font-medium disabled:opacity-50 hover:bg-[#3730A9] transition-colors"
+                >
+                  {submittingReview ? 'Submitting...' : 'Submit review'}
+                </button>
+              </form>
+            )}
+
+            {reviewSuccess && (
+              <p className="text-sm text-green-600">Review submitted, thank you!</p>
+            )}
+
+            {reviews.length > 0 && (
+              <div className="flex flex-col gap-3">
+                {reviews.map((r) => (
+                  <div key={r.id} className="flex flex-col gap-1 border-b border-[#E4E1D8] pb-3 last:border-b-0">
+                    <div className="flex items-center gap-2">
+                      <StarRating value={r.rating} readonly />
+                      <span className="text-xs text-gray-400">{r.user?.name}</span>
+                      <span className="text-xs text-gray-300">
+                        {new Date(r.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                      </span>
+                    </div>
+                    {r.comment && <p className="text-sm text-gray-600">{r.comment}</p>}
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </div>

@@ -200,6 +200,18 @@ export interface Report {
   reporter: User
 }
 
+export interface EventsResponse {
+  events: Event[]
+  total: number
+  page: number
+  limit: number
+  pages: number
+}
+
+export interface TrendingEvent extends Event {
+  booking_count: number
+}
+
 
 export const profile = {
   getMine: () => api.get<ProfileData>('/profile/me'),
@@ -222,8 +234,16 @@ export const auth = {
 }
 
 export const events = {
-  getAll: (params?: { category?: string; city?: string; country?: string; search?: string }) =>
-    api.get<EventsResponse>('/events', { params }),
+  getAll: (params?: {
+    category?: string
+    city?: string
+    country?: string
+    search?: string
+    page?: number
+  }) => api.get<EventsResponse>('/events', { params }),
+
+  getTrending: () => api.get<TrendingEvent[]>('/events/trending'),
+
 
   getOne: (id: number) =>
     api.get<EventDetail>(`/events/${id}`),

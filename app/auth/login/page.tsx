@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation'
 import Cookies from 'js-cookie'
 import { Eye, EyeOff } from 'lucide-react'
 import { auth } from '@/app/lib/api'
+  import { useSearchParams } from 'next/navigation'
+
 
 export default function LoginPage() {
   const router = useRouter()
@@ -11,6 +13,8 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+const searchParams = useSearchParams()
+const resetSuccess = searchParams.get('reset') === 'success'
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -29,6 +33,7 @@ export default function LoginPage() {
   }
 
   return (
+
     <main className="min-h-screen flex items-center justify-center">
       <div className="w-full max-w-sm flex flex-col gap-6">
         <div>
@@ -43,7 +48,12 @@ export default function LoginPage() {
             {error}
           </div>
         )}
-
+        
+{resetSuccess && (
+  <div className="bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3">
+    Password reset successfully. Sign in with your new password.
+  </div>
+)}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">Email</label>
@@ -78,6 +88,11 @@ export default function LoginPage() {
             </div>
           </div>
 
+<div className="flex justify-end">
+  <a href="/auth/forgot-password" className="text-xs text-gray-400 hover:text-[#14131F]">
+    Forgot password?
+  </a>
+</div>
           <button
             type="submit"
             disabled={loading}
