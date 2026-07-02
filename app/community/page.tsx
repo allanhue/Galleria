@@ -39,6 +39,7 @@ export default function CommunityPage() {
   const [reportTarget, setReportTarget] = useState<{ type: 'post' | 'user'; id: number } | null>(null)
 const [openMenu, setOpenMenu] = useState<number | null>(null)
   const [currentUserId, setCurrentUserId] = useState<number | null>(null)
+  
 const handleStartChat = async (userId: number) => {
 const token = Cookies.get('token')
   if (!token) {
@@ -346,44 +347,47 @@ useEffect(() => {
                     </button>
                     
                     {currentUserId === post.user_id && (
-  <button
-    onClick={() => handleDeletePost(post.id)}
-    className="flex items-center gap-1.5 text-sm border border-[#E4E1D8] px-3 py-1.5 hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors"
-  >
-    <Trash2 size={14} />
-  </button>
-)}
+                      <button
+                        onClick={() => handleDeletePost(post.id)}
+                        aria-label="Delete post"
+                        className="flex items-center gap-1.5 text-sm border border-[#E4E1D8] px-3 py-1.5 hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
 
-                    <span className="text-xs text-gray-400 ml-auto">
+                    <span className="text-xs text-gray-400">
                       {new Date(post.created_at).toLocaleDateString('en-GB', {
                         day: 'numeric', month: 'short',
                       })}
                     </span>
+
+                    <div className="relative ml-2">
+                      <button
+                        onClick={() => setOpenMenu(openMenu === post.id ? null : post.id)}
+                        aria-label="More post options"
+                        className="text-gray-400 hover:text-[#14131F] p-1"
+                      >
+                        <MoreVertical size={14} />
+                      </button>
+                      {openMenu === post.id && (
+                        <div className="absolute right-0 top-7 bg-white border border-[#E4E1D8] shadow-md z-10 w-36">
+                          <button
+                            onClick={() => {
+                              setReportTarget({ type: 'post', id: post.id })
+                              setOpenMenu(null)
+                            }}
+                            className="w-full text-left text-xs px-3 py-2 flex items-center gap-2 text-gray-600 hover:bg-[#FAF9F6]"
+                          >
+                            <Flag size={12} />
+                            Report post
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-                
-<div className="relative ml-auto">
-  <button
-    onClick={() => setOpenMenu(openMenu === post.id ? null : post.id)}
-    className="text-gray-400 hover:text-[#14131F] p-1"
-  >
-    <MoreVertical size={14} />
-  </button>
-  {openMenu === post.id && (
-    <div className="absolute right-0 top-7 bg-white border border-[#E4E1D8] shadow-md z-10 w-36">
-      <button
-        onClick={() => {
-          setReportTarget({ type: 'post', id: post.id })
-          setOpenMenu(null)
-        }}
-        className="w-full text-left text-xs px-3 py-2 flex items-center gap-2 text-gray-600 hover:bg-[#FAF9F6]"
-      >
-        <Flag size={12} />
-        Report post
-      </button>
-    </div>
-  )}
-</div>
+
                 {/* Comments thread */}
                 {commentsOpen && (
                   <div className="border-t border-[#E4E1D8] bg-[#FAF9F6] p-4 flex flex-col gap-3">

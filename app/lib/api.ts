@@ -198,6 +198,18 @@ export interface OrganizerStats {
   }[]
 }
 
+export interface Report {
+  id: number
+  reporter_id: number
+  target_type: string
+  target_id: number
+  reason: string
+  details: string
+  status: string
+  created_at: string
+  reporter: User
+}
+
 
 export const profile = {
   getMine: () => api.get<ProfileData>('/profile/me'),

@@ -7,8 +7,10 @@ import Spinner from '@/app/components/spinner'
 import { ArrowLeft, Send } from 'lucide-react'
 import BlockButton from '@/app/components/block_button'
 import ReportModal from '@/app/components/report_modal'
-// import { messages as messagesApi } from '@/app/lib/api'
+import { messages as messagesApi } from '@/app/lib/api'
 import { useSearchParams } from 'next/navigation'
+
+
 
 
 export default function ChatPage() {
@@ -24,6 +26,7 @@ export default function ChatPage() {
 const searchParams = useSearchParams()
 const otherUserId = Number(searchParams.get('otherUserId'))
 const otherName = searchParams.get('otherName') || 'User'
+
 
 
   useEffect(() => {
@@ -47,7 +50,7 @@ const otherName = searchParams.get('otherName') || 'User'
 
   useEffect(() => {
     load()
-    const interval = setInterval(load, 7000) // poll every 7s
+    const interval = setInterval(load, 7000) 
     return () => clearInterval(interval)
   }, [id])
 
