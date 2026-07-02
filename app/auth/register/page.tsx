@@ -87,8 +87,8 @@ export default function RegisterPage() {
               onChange={(e) => setForm({ ...form, role: e.target.value })}
               className="border rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-black bg-white"
             >
-              <option value="attendee">Attendee — discover and book events</option>
-              <option value="organizer">Organizer — create and manage events</option>
+              <option value="attendee">Attendee - discover and book events</option>
+              <option value="organizer">Organizer -  create and manage events</option>
             </select>
           </div>
 
