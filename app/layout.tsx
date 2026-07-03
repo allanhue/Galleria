@@ -33,9 +33,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
         <Navbar />
-        <div className="max-w-6xl mx-auto px-4 py-6">
+        <main className="max-w-6xl mx-auto px-4 py-6 md:py-6 py-4">
           {children}
-        </div>
+        </main>
       </body>
     </html>
   )

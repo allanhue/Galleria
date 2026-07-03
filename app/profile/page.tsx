@@ -1,13 +1,15 @@
 'use client'
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import NextLink from 'next/link'
 import { profile, ProfileData } from '@/app/lib/api'
 import Spinner from '@/app/components/spinner'
 import { uploadImage } from '@/app/lib/upload'
 import Cookies from 'js-cookie'
 import {
   UserCircle2, Bookmark, Repeat2, MessageSquare,
-  CalendarCheck, ChevronUp, Camera, Loader2
+  CalendarCheck, ChevronUp, Camera, Loader2,
+  LogOut, LayoutDashboard
 } from 'lucide-react'
 
 export default function ProfilePage() {
@@ -37,13 +39,11 @@ export default function ProfilePage() {
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file || !data) return
-
     setUploadingAvatar(true)
     try {
       const url = await uploadImage(file)
       await profile.updateAvatar(url)
       setData({ ...data, user: { ...data.user, avatar_url: url } })
-
       const storedUser = Cookies.get('user')
       if (storedUser) {
         const parsed = JSON.parse(storedUser)
@@ -69,7 +69,7 @@ export default function ProfilePage() {
   return (
     <main className="max-w-2xl flex flex-col gap-10">
 
-      {/* Header — open, not boxed */}
+      {/* Header */}
       <div className="flex items-center gap-5 pb-6 border-b border-[#E4E1D8]">
         <button
           onClick={handleAvatarClick}
@@ -80,7 +80,6 @@ export default function ProfilePage() {
           ) : (
             <UserCircle2 size={40} className="text-[#3730A9]" />
           )}
-
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
             {uploadingAvatar ? (
               <Loader2 size={18} className="text-white animate-spin" />
@@ -96,7 +95,6 @@ export default function ProfilePage() {
           onChange={handleAvatarChange}
           className="hidden"
         />
-
         <div className="flex flex-col gap-1">
           <h1 className="text-xl font-semibold tracking-tight">{user.name}</h1>
           <p className="text-sm text-gray-500">{user.email}</p>
@@ -107,7 +105,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Stats — inline row, not boxes */}
+      {/* Stats */}
       <div className="flex items-center gap-8">
         {[
           { label: 'Ideas',    value: stats.posts,    icon: MessageSquare },
@@ -149,7 +147,7 @@ export default function ProfilePage() {
         ))}
       </div>
 
-      {/* List */}
+      {/* Posts list */}
       <div className="flex flex-col gap-3">
         {activePosts.length === 0 ? (
           <div className="text-center text-gray-400 text-sm py-12">
@@ -175,6 +173,31 @@ export default function ProfilePage() {
           ))
         )}
       </div>
+
+      {/* Actions — bottom of profile */}
+      <div className="flex flex-col gap-3 border-t border-[#E4E1D8] pt-6">
+        {user?.role === 'organizer' && (
+          <NextLink
+            href="/dashboard"
+            className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#14131F] border border-[#E4E1D8] px-4 py-2.5 w-fit transition-colors"
+          >
+            <LayoutDashboard size={15} />
+            Organizer dashboard
+          </NextLink>
+        )}
+        <button
+          onClick={() => {
+            Cookies.remove('token')
+            Cookies.remove('user')
+            router.push('/auth/login')
+          }}
+          className="flex items-center gap-2 text-sm text-red-500 hover:text-red-600 transition-colors w-fit"
+        >
+          <LogOut size={15} />
+          Sign out
+        </button>
+      </div>
+
     </main>
   )
 }
