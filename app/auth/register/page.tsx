@@ -98,7 +98,7 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">Full name</label>
+              <label className="text-sm font-medium">Username</label>
               <input
                 placeholder="Michael Johnson"
                 value={form.name}

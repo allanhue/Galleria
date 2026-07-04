@@ -5,7 +5,8 @@ import Cookies from 'js-cookie'
 import { useState, useEffect } from 'react'
 import {
   Compass, Search, CalendarDays, Sparkles,
-  UserCircle2, LogOut, Gem, MessageSquare
+  UserCircle2, LogOut, Gem, MessageSquare,
+  Bookmark
 } from 'lucide-react'
 import NotificationBell from '@/app/components/notification_bell'
 import { messages } from '@/app/lib/api'
@@ -54,7 +55,8 @@ export default function Navbar() {
 
   const bottomLinks: NavLink[] = [
     { href: '/',          label: 'Home',    icon: Compass },
-    { href: '/events',    label: 'Explore', icon: Search },
+    // { href: '/events',    label: 'Explore', icon: Search },
+    { href: '/bookings', label: 'Bookings', icon: Bookmark },
     { href: '/community', label: 'Events',  icon: CalendarDays },
     { href: '/discover',  label: 'People',  icon: Sparkles },
     { href: '/profile',   label: 'Profile', icon: UserCircle2, authOnly: true },
