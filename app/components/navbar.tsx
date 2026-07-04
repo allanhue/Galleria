@@ -56,9 +56,9 @@ export default function Navbar() {
   const bottomLinks: NavLink[] = [
     { href: '/',          label: 'Home',    icon: Compass },
     // { href: '/events',    label: 'Explore', icon: Search },
-    { href: '/bookings', label: 'Bookings', icon: Bookmark },
-    { href: '/community', label: 'Events',  icon: CalendarDays },
+    { href: '/community', label: 'Community',  icon: CalendarDays },
     { href: '/discover',  label: 'People',  icon: Sparkles },
+    { href: '/bookings', label: 'Bookings', icon: Bookmark },
     { href: '/profile',   label: 'Profile', icon: UserCircle2, authOnly: true },
     ...(!user ? [{ href: '/auth/login', label: 'Sign in', icon: UserCircle2 }] : []),
   ]
