@@ -114,7 +114,7 @@ export default function LoginClient() {
               <label className="text-sm font-medium">Email</label>
               <input
                 type="email"
-                placeholder="you@example.com"
+                placeholder="jamin@example.com"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 className="w-full border border-[#E4E1D8] bg-[#FAF9F6] px-4 py-2.5 text-sm outline-none transition-colors focus:border-[#3730A9] focus:bg-white"

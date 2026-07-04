@@ -100,7 +100,7 @@ export default function RegisterPage() {
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium">Username</label>
               <input
-                placeholder="Michael Johnson"
+                placeholder="Jamin Johnson"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 className="w-full border border-[#E4E1D8] bg-[#FAF9F6] px-4 py-2.5 text-sm outline-none transition-colors focus:border-[#3730A9] focus:bg-white"
@@ -112,7 +112,7 @@ export default function RegisterPage() {
               <label className="text-sm font-medium">Email</label>
               <input
                 type="email"
-                placeholder="michael@example.com"
+                placeholder="jamin@example.com"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 className="w-full border border-[#E4E1D8] bg-[#FAF9F6] px-4 py-2.5 text-sm outline-none transition-colors focus:border-[#3730A9] focus:bg-white"
