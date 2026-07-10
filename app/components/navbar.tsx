@@ -104,18 +104,20 @@ export default function Navbar() {
         <div className="flex items-center gap-2">
           {user ? (
             <>
-              {/* Messages — mobile and desktop */}
-              <Link href="/messages" className="relative w-8 h-8 flex items-center justify-center text-gray-500 hover:text-[#3730A9] transition-colors">
-                <MessageSquare size={18} strokeWidth={1.8} />
-                {unread > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#3730A9] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                    {unread > 9 ? '9+' : unread}
-                  </span>
-                )}
-              </Link>
+              <div className="flex items-center gap-2 mr-1 sm:mr-2">
+                {/* Messages — mobile and desktop */}
+                <Link href="/messages" className="relative w-8 h-8 flex items-center justify-center text-gray-500 hover:text-[#3730A9] transition-colors">
+                  <MessageSquare size={18} strokeWidth={1.8} />
+                  {unread > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#3730A9] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                      {unread > 9 ? '9+' : unread}
+                    </span>
+                  )}
+                </Link>
 
-              {/* Notification bell */}
-              <NotificationBell />
+                {/* Notification bell */}
+                <NotificationBell />
+              </div>
 
               {/* Sign out — desktop only */}
               <button
