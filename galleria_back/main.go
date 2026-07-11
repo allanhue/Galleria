@@ -113,6 +113,8 @@ func main() {
 		protected.GET("/dashboard/stats", handlers.GetOrganizerStats)
 		protected.GET("/messages/unread", handlers.GetUnreadCount)
 		protected.POST("/events/:id/review", handlers.CreateReview)
+		protected.POST("/checkin",              handlers.CheckInAttendee)
+protected.GET("/events/:id/checkin",    handlers.GetCheckinStats)
 
 	}
 

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"galleria_back/db"
 	"galleria_back/models"
 	"galleria_back/services"
@@ -8,6 +9,7 @@ import (
     "math"
 	"strconv"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func GetEventAttendees(c *gin.Context) {
@@ -146,6 +148,7 @@ func BookEvent(c *gin.Context) {
 		UserID:  userID.(uint),
 		EventID: event.ID,
 		Status:  "confirmed",
+		QRToken: uuid.New().String(),
 	}
 	if err := db.DB.Create(&booking).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to book"})
@@ -154,8 +157,15 @@ func BookEvent(c *gin.Context) {
 
 	var user models.User
 	db.DB.First(&user, userID)
-	services.SendMail(user.Email, user.Name, "Booking Confirmed — "+event.Title,
-		"<h1>You're booked!</h1><p>Your spot at <b>"+event.Title+"</b> is confirmed.</p>")
+	services.SendMail(user.Email, user.Name,
+		"Booking Confirmed — "+event.Title,
+		fmt.Sprintf(`
+			<h1>You're booked!</h1>
+			<p>Your spot at <b>%s</b> on %s is confirmed.</p>
+			<p>Your check-in code: <b>%s</b></p>
+			<p>Show this at the door.</p>
+		`, event.Title, event.Date, booking.QRToken),
+	)
 
 	c.JSON(http.StatusCreated, booking)
 }
