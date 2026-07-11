@@ -293,97 +293,116 @@ useEffect(() => {
 )}
                   </div>
 
-                  <div className="flex items-center gap-1 pt-1">
-                    {/* Vote */}
-                    <div className="flex items-center border border-[#E4E1D8]">
+                  <div className="flex flex-col gap-2 pt-1">
+                    <div className="flex items-center gap-1 flex-wrap">
+                      {/* Vote */}
+                      <div className="flex items-center border border-[#E4E1D8]">
+                        <button
+                          onClick={() => handleVote(post.id, 'up')}
+                          className="p-1.5 hover:bg-[#FAF9F6] text-gray-500"
+                          aria-label="Upvote"
+                        >
+                          <ChevronUp size={14} />
+                        </button>
+                        <span className="text-xs font-medium px-1.5 min-w-[20px] text-center">
+                          {post.votes}
+                        </span>
+                        <button
+                          onClick={() => handleVote(post.id, 'down')}
+                          className="p-1.5 hover:bg-[#FAF9F6] text-gray-500"
+                          aria-label="Downvote"
+                        >
+                          <ChevronDown size={14} />
+                        </button>
+                      </div>
+
+                      {/* Comment */}
                       <button
-                        onClick={() => handleVote(post.id, 'up')}
-                        className="p-1.5 hover:bg-[#FAF9F6] text-gray-500"
-                        aria-label="Upvote"
+                        onClick={() => toggleComments(post.id)}
+                        className="flex items-center gap-1 text-xs border border-[#E4E1D8] px-2 py-1.5 hover:bg-[#FAF9F6] text-gray-500"
                       >
-                        <ChevronUp size={15} />
+                        <MessageCircle size={13} />
+                        <span>{post.comments?.length || 0}</span>
                       </button>
-                      <span className="text-sm font-medium px-1.5 min-w-[24px] text-center">
-                        {post.votes}
-                      </span>
+
+                      {/* Save */}
                       <button
-                        onClick={() => handleVote(post.id, 'down')}
-                        className="p-1.5 hover:bg-[#FAF9F6] text-gray-500"
-                        aria-label="Downvote"
+                        onClick={() => handleSave(post.id)}
+                        className={`flex items-center gap-1 text-xs border px-2 py-1.5 transition-colors ${
+                          isSaved
+                            ? 'border-[#3730A9] text-[#3730A9] bg-[#EEEDFB]'
+                            : 'border-[#E4E1D8] text-gray-500 hover:bg-[#FAF9F6]'
+                        }`}
                       >
-                        <ChevronDown size={15} />
+                        <Bookmark size={13} fill={isSaved ? '#3730A9' : 'none'} />
+                        <span>{post.saves || 0}</span>
                       </button>
-                    </div>
 
-                    {/* Comment toggle */}
-                    <button
-                      onClick={() => toggleComments(post.id)}
-                      className="flex items-center gap-1.5 text-sm border border-[#E4E1D8] px-3 py-1.5 hover:bg-[#FAF9F6] text-gray-500"
-                    >
-                      <MessageCircle size={14} />
-                      {post.comments?.length || ''}
-                    </button>
-
-                    {/* Save */}
-                    <button
-                      onClick={() => handleSave(post.id)}
-                      className={`flex items-center gap-1.5 text-sm border px-3 py-1.5 transition-colors ${
-                        isSaved
-                          ? 'border-[#3730A9] text-[#3730A9] bg-[#EEEDFB]'
-                          : 'border-[#E4E1D8] text-gray-500 hover:bg-[#FAF9F6]'
-                      }`}
-                    >
-                      <Bookmark size={14} fill={isSaved ? '#3730A9' : 'none'} />
-                      {post.saves || ''}
-                    </button>
-
-                    {/* Repost */}
-                    <button
-                      onClick={() => handleRepost(post.id)}
-                      className="flex items-center gap-1.5 text-sm border border-[#E4E1D8] px-3 py-1.5 hover:bg-[#FAF9F6] text-gray-500"
-                    >
-                      <Repeat2 size={14} />
-                      {post.reposts || ''}
-                    </button>
-                    
-                    {currentUserId === post.user_id && (
+                      {/* Repost */}
                       <button
-                        onClick={() => handleDeletePost(post.id)}
-                        aria-label="Delete post"
-                        className="flex items-center gap-1.5 text-sm border border-[#E4E1D8] px-3 py-1.5 hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors"
+                        onClick={() => handleRepost(post.id)}
+                        className="flex items-center gap-1 text-xs border border-[#E4E1D8] px-2 py-1.5 hover:bg-[#FAF9F6] text-gray-500"
                       >
-                        <Trash2 size={14} />
+                        <Repeat2 size={13} />
+                        <span>{post.reposts || 0}</span>
                       </button>
-                    )}
 
-                    <span className="text-xs text-gray-400">
-                      {new Date(post.created_at).toLocaleDateString('en-GB', {
-                        day: 'numeric', month: 'short',
-                      })}
-                    </span>
+                      {/* Spacer + right side actions */}
+                      <div className="flex items-center gap-1 ml-auto">
+                        <span className="text-[11px] text-gray-400">
+                          {new Date(post.created_at).toLocaleDateString('en-GB', {
+                            day: 'numeric', month: 'short',
+                          })}
+                        </span>
 
-                    <div className="relative ml-2">
-                      <button
-                        onClick={() => setOpenMenu(openMenu === post.id ? null : post.id)}
-                        aria-label="More post options"
-                        className="text-gray-400 hover:text-[#14131F] p-1"
-                      >
-                        <MoreVertical size={14} />
-                      </button>
-                      {openMenu === post.id && (
-                        <div className="absolute right-0 top-7 bg-white border border-[#E4E1D8] shadow-md z-10 w-36">
+                        {/* Delete — only own posts */}
+                        {currentUserId === post.user_id && (
                           <button
-                            onClick={() => {
-                              setReportTarget({ type: 'post', id: post.id })
-                              setOpenMenu(null)
-                            }}
-                            className="w-full text-left text-xs px-3 py-2 flex items-center gap-2 text-gray-600 hover:bg-[#FAF9F6]"
+                            onClick={() => handleDeletePost(post.id)}
+                            aria-label="Delete post"
+                            className="p-1.5 hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
                           >
-                            <Flag size={12} />
-                            Report post
+                            <Trash2 size={13} />
                           </button>
+                        )}
+
+                        {/* More menu */}
+                        <div className="relative">
+                          <button
+                            onClick={() => setOpenMenu(openMenu === post.id ? null : post.id)}
+                            aria-label="More options"
+                            className="p-1.5 text-gray-400 hover:text-[#14131F]"
+                          >
+                            <MoreVertical size={13} />
+                          </button>
+                          {openMenu === post.id && (
+                            <div className="absolute right-0 top-7 bg-white border border-[#E4E1D8] shadow-md z-10 w-36">
+                              <button
+                                onClick={() => {
+                                  setReportTarget({ type: 'post', id: post.id })
+                                  setOpenMenu(null)
+                                }}
+                                className="w-full text-left text-xs px-3 py-2 flex items-center gap-2 text-gray-600 hover:bg-[#FAF9F6]"
+                              >
+                                <Flag size={12} />
+                                Report post
+                              </button>
+                              {currentUserId !== post.user_id && (
+                                <button
+                                  onClick={() => {
+                                    handleStartChat(post.user_id)
+                                    setOpenMenu(null)
+                                  }}
+                                  className="w-full text-left text-xs px-3 py-2 flex items-center gap-2 text-gray-600 hover:bg-[#FAF9F6]"
+                                >
+                                  <MessageSquare size={12} />
+                                  Message
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </div>
-                      )}
+                      </div>
                     </div>
                   </div>
                 </div>
