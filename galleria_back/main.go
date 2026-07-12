@@ -38,6 +38,8 @@ func main() {
 		&models.PasswordReset{},
 		&models.Review{},
 		&models.PushSubscription{},
+		&models.EventLike{},
+	   &models.EventSave{},
 	)
 
 	db.SeedEvents()
@@ -64,6 +66,8 @@ func main() {
 	r.GET("/events", handlers.GetAllEvents)
 	r.GET("/events/:id", handlers.GetEvent)
 	r.GET("/events/:id/reviews", handlers.GetEventReviews)
+	r.GET("/events/:id/likes", handlers.GetEventLikes)
+
 
 	// Protected routes
 	protected := r.Group("/")
@@ -117,6 +121,9 @@ func main() {
 		protected.POST("/checkin",              handlers.CheckInAttendee)
 protected.GET("/events/:id/checkin",    handlers.GetCheckinStats)
 protected.POST("/push/subscribe", handlers.SavePushSubscription)
+protected.POST("/events/:id/like",  handlers.LikeEvent)
+protected.POST("/events/:id/save",  handlers.SaveEvent)
+protected.GET("/events/saved",      handlers.GetMySavedEvents)
 
 
 	}
