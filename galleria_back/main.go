@@ -40,6 +40,8 @@ func main() {
 		&models.PushSubscription{},
 		&models.EventLike{},
 	   &models.EventSave{},
+	   	&models.UserSettings{},
+
 	)
 
 	db.SeedEvents()
@@ -124,6 +126,12 @@ protected.POST("/push/subscribe", handlers.SavePushSubscription)
 protected.POST("/events/:id/like",  handlers.LikeEvent)
 protected.POST("/events/:id/save",  handlers.SaveEvent)
 protected.GET("/events/saved",      handlers.GetMySavedEvents)
+
+
+protected.GET("/settings",          handlers.GetSettings)
+protected.PUT("/settings",          handlers.UpdateSettings)
+protected.PUT("/settings/account",  handlers.UpdateAccountInfo)
+protected.PUT("/settings/password", handlers.ChangePassword)
 
 
 	}
