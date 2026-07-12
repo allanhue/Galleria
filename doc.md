@@ -6,7 +6,7 @@ Payment Feature ??
 
 
 
-
+Organizer check-in scanner — app/dashboard/checkin/[id]/page.tsx
 
 # Galleria — Full Project Documentation
 

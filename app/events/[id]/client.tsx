@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { events, EventDetail } from '@/app/lib/api'
 import Cookies from 'js-cookie'
-import { Calendar, MapPin, Users, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Calendar, MapPin, Users, ArrowLeft, CheckCircle2, AlertCircle, Share2, Copy, Check } from 'lucide-react'
 import Spinner from '@/app/components/spinner'
 
 interface Review {
@@ -52,6 +52,7 @@ export default function EventDetailClient() {
   const [submittingReview, setSubmittingReview] = useState(false)
   const [reviewError, setReviewError] = useState('')
   const [reviewSuccess, setReviewSuccess] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     events.getOne(Number(id))
@@ -83,6 +84,28 @@ export default function EventDetailClient() {
       setError(err.response?.data?.error || 'Booking failed')
     } finally {
       setBooking(false)
+    }
+  }
+
+  const handleShare = async () => {
+    if (!event) return
+
+    const shareData = {
+      title: event.title,
+      text: `${event.title} — ${event.date} at ${event.location}`,
+      url: window.location.href,
+    }
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData)
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(shareData.url)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      }
+    } catch (err) {
+      console.error(err)
     }
   }
 
@@ -202,13 +225,23 @@ export default function EventDetailClient() {
                 This event is sold out
               </div>
             ) : (
-              <button
-                onClick={handleBook}
-                disabled={booking}
-                className="bg-[#14131F] text-white px-8 py-3 text-sm font-medium w-fit disabled:opacity-50 hover:bg-[#3730A9] transition-colors"
-              >
-                {booking ? 'Booking...' : 'Book my spot'}
-              </button>
+              <div className="flex items-center gap-3 flex-wrap">
+                <button
+                  onClick={handleBook}
+                  disabled={booking}
+                  className="bg-[#14131F] text-white px-8 py-3 text-sm font-medium w-fit disabled:opacity-50 hover:bg-[#3730A9] transition-colors"
+                >
+                  {booking ? 'Booking...' : 'Book my spot'}
+                </button>
+
+                <button
+                  onClick={handleShare}
+                  className="flex items-center gap-2 border border-[#E4E1D8] px-4 py-3 text-sm text-gray-500 hover:border-[#3730A9] hover:text-[#3730A9] transition-colors"
+                >
+                  {copied ? <Check size={15} className="text-green-600" /> : <Share2 size={15} />}
+                  {copied ? 'Copied!' : 'Share'}
+                </button>
+              </div>
             )}
           </div>
 

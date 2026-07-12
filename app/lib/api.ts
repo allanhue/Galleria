@@ -211,6 +211,16 @@ export interface EventsResponse {
 export interface TrendingEvent extends Event {
   booking_count: number
 }
+export interface Booking {
+  id: number
+  user_id: number
+  event_id: number
+  status: string
+  qr_token: string
+  checked_in: boolean
+  created_at: string
+  event: Event
+}
 
 
 export const profile = {

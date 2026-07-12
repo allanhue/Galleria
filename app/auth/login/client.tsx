@@ -7,6 +7,7 @@ import Cookies from 'js-cookie'
 import { Eye, EyeOff, Gem } from 'lucide-react'
 import type { AxiosError } from 'axios'
 import { auth } from '@/app/lib/api'
+import { subscribeToPush } from '@/app/lib/push'
 
 type ErrorResponse = {
   error?: string
@@ -48,6 +49,9 @@ export default function LoginClient() {
       const res = await auth.login(form)
       Cookies.set('token', res.data.token, { expires: 7 })
       Cookies.set('user', JSON.stringify(res.data.user), { expires: 7 })
+
+      subscribeToPush().catch(console.error)
+
       router.push('/')
     } catch (err: unknown) {
       const error = err as AxiosError<ErrorResponse>

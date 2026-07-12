@@ -5,7 +5,7 @@ import { events, Event, organizerTools } from '@/app/lib/api'
 import Spinner from '@/app/components/spinner'
 import Cookies from 'js-cookie'
 import Link from 'next/link'
-import { Pencil, Trash2, Users } from 'lucide-react'
+import { Pencil, QrCode, Trash2, Users } from 'lucide-react'
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -127,6 +127,12 @@ const [stats, setStats] = useState<{ total_events: number; total_bookings: numbe
                         className="text-xs border border-[#E4E1D8] p-1.5 hover:bg-[#FAF9F6] transition-colors"
                       >
                         <Users size={13} />
+                      </Link>
+                      <Link
+                        href={`/dashboard/checkin/${event.id}`}
+                        className="text-xs border border-[#E4E1D8] p-1.5 hover:bg-[#FAF9F6] transition-colors"
+                      >
+                        <QrCode size={13} />
                       </Link>
                       <Link
                         href={`/dashboard/edit/${event.id}`}
