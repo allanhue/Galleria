@@ -3,7 +3,8 @@ import React, { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { events, EventDetail } from '@/app/lib/api'
 import Cookies from 'js-cookie'
-import { Calendar, MapPin, Users, ArrowLeft, CheckCircle2, AlertCircle, Share2, Copy, Check } from 'lucide-react'
+import { Calendar, MapPin, Users, ArrowLeft, CheckCircle2, AlertCircle, Share2, Copy, Check, ThumbsUp, ThumbsDown, Bookmark } from 'lucide-react'
+
 import Spinner from '@/app/components/spinner'
 
 interface Review {
@@ -53,21 +54,86 @@ export default function EventDetailClient() {
   const [reviewError, setReviewError] = useState('')
   const [reviewSuccess, setReviewSuccess] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [hasBooked, setHasBooked] = useState(false)
+const [likes, setLikes] = useState(0)
+const [dislikes, setDislikes] = useState(0)
+const [myDirection, setMyDirection] = useState('')
+const [saved, setSaved] = useState(false)
+const [currentUser, setCurrentUser] = useState<any>(null)
 
-  useEffect(() => {
-    events.getOne(Number(id))
-      .then((res) => setEvent(res.data))
-      .catch(console.error)
-      .finally(() => setLoading(false))
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/events/${id}/reviews`)
-      .then((r) => r.json())
-      .then((data) => {
-        setReviews(data.reviews || [])
-        setAvgRating(data.avg_rating || 0)
+useEffect(() => {
+  events.getOne(Number(id))
+    .then((res) => setEvent(res.data))
+    .catch(console.error)
+    .finally(() => setLoading(false))
+
+
+  events.getLikes(Number(id))
+  .then((res) => {
+    setLikes(res.data.likes)
+    setDislikes(res.data.dislikes)
+    setMyDirection(res.data.my_direction)
+  })
+  .catch(console.error)
+
+// get current user to check if organizer
+const stored = Cookies.get('user')
+if (stored) {
+  try { setCurrentUser(JSON.parse(stored)) } catch {}
+}
+
+  // check if user has ever booked this event
+  const token = Cookies.get('token')
+  if (token) {
+    events.getMyBookings()
+      .then((res) => {
+        const hasThisBooking = res.data.some(
+          (b: any) => b.event_id === Number(id) && b.status === 'confirmed'
+        )
+        setHasBooked(hasThisBooking)
       })
       .catch(console.error)
-  }, [id])
+  }
+
+  // fetch reviews
+  fetch(`${process.env.NEXT_PUBLIC_API_URL}/events/${id}/reviews`)
+    .then((r) => r.json())
+    .then((data) => {
+      setReviews(data.reviews || [])
+      setAvgRating(data.avg_rating || 0)
+    })
+    .catch(console.error)
+}, [id])
+
+
+
+
+
+const handleLike = async (direction: 'like' | 'dislike') => {
+  const token = Cookies.get('token')
+  if (!token) { router.push('/auth/login'); return }
+  try {
+    const res = await events.likeEvent(Number(id), direction)
+    const updated = await events.getLikes(Number(id))
+    setLikes(updated.data.likes)
+    setDislikes(updated.data.dislikes)
+    setMyDirection(res.data.action === 'removed' ? '' : direction)
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+const handleSaveEvent = async () => {
+  const token = Cookies.get('token')
+  if (!token) { router.push('/auth/login'); return }
+  try {
+    const res = await events.saveEvent(Number(id))
+    setSaved(res.data.saved)
+  } catch (err) {
+    console.error(err)
+  }
+}
 
   const handleBook = async () => {
     const token = Cookies.get('token')
@@ -205,6 +271,47 @@ export default function EventDetailClient() {
             </span>
           </div>
 
+          {/* Like / dislike / save row */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => handleLike('like')}
+              className={`flex items-center gap-1.5 text-sm border px-3 py-1.5 transition-colors ${
+                myDirection === 'like'
+                  ? 'border-[#3730A9] bg-[#EEEDFB] text-[#3730A9]'
+                  : 'border-[#E4E1D8] text-gray-500 hover:bg-[#FAF9F6]'
+              }`}
+            >
+              <ThumbsUp size={14} />
+              <span>{likes}</span>
+            </button>
+
+            <button
+              onClick={() => handleLike('dislike')}
+              className={`flex items-center gap-1.5 text-sm border px-3 py-1.5 transition-colors ${
+                myDirection === 'dislike'
+                  ? 'border-red-300 bg-red-50 text-red-500'
+                  : 'border-[#E4E1D8] text-gray-500 hover:bg-[#FAF9F6]'
+              }`}
+            >
+              <ThumbsDown size={14} />
+              {currentUser?.id === event.organizer_id && (
+                <span>{dislikes}</span>
+              )}
+            </button>
+
+            <button
+              onClick={handleSaveEvent}
+              className={`flex items-center gap-1.5 text-sm border px-3 py-1.5 transition-colors ${
+                saved
+                  ? 'border-[#3730A9] bg-[#EEEDFB] text-[#3730A9]'
+                  : 'border-[#E4E1D8] text-gray-500 hover:bg-[#FAF9F6]'
+              }`}
+            >
+              <Bookmark size={14} fill={saved ? '#3730A9' : 'none'} />
+              {saved ? 'Saved' : 'Save'}
+            </button>
+          </div>
+
           {/* Error Message */}
           {error && (
             <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3">
@@ -213,36 +320,34 @@ export default function EventDetailClient() {
             </div>
           )}
 
-          {/* Booking Section */}
-          <div>
+          {/* Booking + Share row */}
+          <div className="flex items-center gap-3 flex-wrap pt-2">
             {booked ? (
               <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 px-5 py-4 text-sm font-medium">
                 <CheckCircle2 size={16} />
-                You are booked. Check your email for confirmation.
+                You are booked
               </div>
             ) : event.sold_out ? (
-              <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 text-gray-500 px-5 py-4 text-sm font-medium w-fit">
-                This event is sold out
+              <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 text-gray-500 px-5 py-4 text-sm font-medium">
+                Sold out
               </div>
             ) : (
-              <div className="flex items-center gap-3 flex-wrap">
-                <button
-                  onClick={handleBook}
-                  disabled={booking}
-                  className="bg-[#14131F] text-white px-8 py-3 text-sm font-medium w-fit disabled:opacity-50 hover:bg-[#3730A9] transition-colors"
-                >
-                  {booking ? 'Booking...' : 'Book my spot'}
-                </button>
-
-                <button
-                  onClick={handleShare}
-                  className="flex items-center gap-2 border border-[#E4E1D8] px-4 py-3 text-sm text-gray-500 hover:border-[#3730A9] hover:text-[#3730A9] transition-colors"
-                >
-                  {copied ? <Check size={15} className="text-green-600" /> : <Share2 size={15} />}
-                  {copied ? 'Copied!' : 'Share'}
-                </button>
-              </div>
+              <button
+                onClick={handleBook}
+                disabled={booking}
+                className="bg-[#14131F] text-white px-8 py-3 text-sm font-medium disabled:opacity-50 hover:bg-[#3730A9] transition-colors"
+              >
+                {booking ? 'Booking...' : 'Book my spot'}
+              </button>
             )}
+
+            <button
+              onClick={handleShare}
+              className="flex items-center gap-2 border border-[#E4E1D8] px-4 py-3 text-sm text-gray-500 hover:border-[#3730A9] hover:text-[#3730A9] transition-colors"
+            >
+              {copied ? <Check size={15} className="text-green-600" /> : <Share2 size={15} />}
+              {copied ? 'Copied!' : 'Share'}
+            </button>
           </div>
 
           {/* Reviews section */}
@@ -254,27 +359,30 @@ export default function EventDetailClient() {
               </span>
             </div>
 
-            {booked && !reviewSuccess && (
-              <form onSubmit={handleReviewSubmit} className="border border-[#E4E1D8] p-4 flex flex-col gap-3">
-                <p className="text-sm font-medium">Leave a review</p>
-                <StarRating value={myRating} onChange={setMyRating} />
-                <textarea
-                  placeholder="Share your experience (optional)"
-                  value={myComment}
-                  onChange={(e) => setMyComment(e.target.value)}
-                  rows={3}
-                  className="border border-[#E4E1D8] px-3 py-2 text-sm outline-none focus:border-[#3730A9] resize-none"
-                />
-                {reviewError && <p className="text-xs text-red-500">{reviewError}</p>}
-                <button
-                  type="submit"
-                  disabled={!myRating || submittingReview}
-                  className="self-start bg-[#14131F] text-white px-5 py-2 text-sm font-medium disabled:opacity-50 hover:bg-[#3730A9] transition-colors"
-                >
-                  {submittingReview ? 'Submitting...' : 'Submit review'}
-                </button>
-              </form>
-            )}
+{/* Leave a review — visible to anyone who ever booked */}
+{hasBooked && !reviewSuccess && (
+  <form onSubmit={handleReviewSubmit} className="border border-[#E4E1D8] p-4 flex flex-col gap-3">
+    <p className="text-sm font-medium">Leave a review</p>
+    <StarRating value={myRating} onChange={setMyRating} />
+    <textarea
+      placeholder="Share your experience (optional)"
+      value={myComment}
+      onChange={(e) => setMyComment(e.target.value)}
+      rows={3}
+      className="border border-[#E4E1D8] px-3 py-2 text-sm outline-none focus:border-[#3730A9] resize-none"
+    />
+    {reviewError && (
+      <p className="text-xs text-red-500">{reviewError}</p>
+    )}
+    <button
+      type="submit"
+      disabled={!myRating || submittingReview}
+      className="self-start bg-[#14131F] text-white px-5 py-2 text-sm font-medium disabled:opacity-50 hover:bg-[#3730A9] transition-colors"
+    >
+      {submittingReview ? 'Submitting...' : 'Submit review'}
+    </button>
+  </form>
+)}
 
             {reviewSuccess && (
               <p className="text-sm text-green-600">Review submitted, thank you!</p>

@@ -222,6 +222,13 @@ export interface Booking {
   event: Event
 }
 
+export interface EventLikes {
+  likes: number
+  dislikes: number
+  my_direction: string
+}
+
+
 
 export const profile = {
   getMine: () => api.get<ProfileData>('/profile/me'),
@@ -275,6 +282,20 @@ export const events = {
 
   getMyBookings: () =>
     api.get<Booking[]>('/bookings/my'),
+
+  // add inside events object
+likeEvent: (id: number, direction: 'like' | 'dislike') =>
+  api.post(`/events/${id}/like`, { direction }),
+
+getLikes: (id: number) =>
+  api.get<EventLikes>(`/events/${id}/likes`),
+
+saveEvent: (id: number) =>
+  api.post<{ saved: boolean }>(`/events/${id}/save`),
+
+getSavedEvents: () =>
+  api.get<Event[]>('/events/saved'),
+
 }
 
 
