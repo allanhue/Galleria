@@ -9,7 +9,7 @@ import Cookies from 'js-cookie'
 import {
   UserCircle2, Bookmark, Repeat2, MessageSquare,
   CalendarCheck, ChevronUp, Camera, Loader2,
-  LogOut, LayoutDashboard
+  LogOut, LayoutDashboard, Settings
 } from 'lucide-react'
 
 export default function ProfilePage() {
@@ -95,13 +95,23 @@ export default function ProfilePage() {
           onChange={handleAvatarChange}
           className="hidden"
         />
-        <div className="flex flex-col gap-1">
-          <h1 className="text-xl font-semibold tracking-tight">{user.name}</h1>
-          <p className="text-sm text-gray-500">{user.email}</p>
-          <span className="inline-flex w-fit items-center gap-1 text-xs text-[#3730A9] font-medium uppercase tracking-wide mt-0.5">
-            <span className="w-1.5 h-1.5 bg-[#3730A9] rounded-full" />
-            {user.role}
-          </span>
+        <div className="flex flex-col gap-1 flex-1">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex flex-col gap-1">
+              <h1 className="text-xl font-semibold tracking-tight">{user.name}</h1>
+              <p className="text-sm text-gray-500">{user.email}</p>
+              <span className="inline-flex w-fit items-center gap-1 text-xs text-[#3730A9] font-medium uppercase tracking-wide mt-0.5">
+                <span className="w-1.5 h-1.5 bg-[#3730A9] rounded-full" />
+                {user.role}
+              </span>
+            </div>
+            <NextLink
+              href="/settings"
+              className="ml-auto text-gray-400 hover:text-[#14131F] transition-colors"
+            >
+              <Settings size={18} />
+            </NextLink>
+          </div>
         </div>
       </div>
 

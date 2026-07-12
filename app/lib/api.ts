@@ -229,6 +229,25 @@ export interface EventLikes {
 }
 
 
+export interface UserSettings {
+  id: number
+  user_id: number
+  notify_comments: boolean
+  notify_votes: boolean
+  notify_saves: boolean
+  notify_reposts: boolean
+  notify_follows: boolean
+  notify_messages: boolean
+  notify_bookings: boolean
+  allow_messages: string
+  allow_follows: string
+  profile_visible: boolean
+  theme: string
+  language: string
+}
+
+
+
 
 export const profile = {
   getMine: () => api.get<ProfileData>('/profile/me'),
@@ -397,4 +416,18 @@ export const organizerTools = {
   getStats: () =>
     api.get<OrganizerStats>('/dashboard/stats'),
 }
+
+
+
+export const settings = {
+  get: () => api.get<UserSettings>('/settings'),
+  update: (data: Partial<UserSettings>) => api.put<UserSettings>('/settings', data),
+  updateAccount: (data: { name?: string; email?: string }) =>
+    api.put<User>('/settings/account', data),
+  changePassword: (data: { current_password: string; new_password: string }) =>
+    api.put('/settings/password', data),
+}
+
+
+
 export default api
