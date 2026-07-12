@@ -49,7 +49,7 @@ async function sendSubscriptionToServer(sub: PushSubscription) {
   })
 }
 
-function urlBase64ToUint8Array(base64String: string): Uint8Array {
+function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
   const rawData = window.atob(base64)
@@ -59,5 +59,7 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
     bytes[i] = rawData.charCodeAt(i)
   }
 
-  return bytes
+  const arrayBuffer = new ArrayBuffer(bytes.byteLength)
+  new Uint8Array(arrayBuffer).set(bytes)
+  return arrayBuffer
 }
