@@ -1,3 +1,8 @@
+package models
+
+import "time"
+
+
 type Booking struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	UserID    uint      `json:"user_id"`
