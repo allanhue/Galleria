@@ -61,16 +61,3 @@ func DismissNotification(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Dismissed"})
 }
 
-func createNotification(userID, actorID uint, notifType, message string, postID, eventID *uint) {
-	if userID == actorID {
-		return
-	}
-	db.DB.Create(&models.Notification{
-		UserID:  userID,
-		ActorID: actorID,
-		Type:    notifType,
-		PostID:  postID,
-		EventID: eventID,
-		Message: message,
-	})
-}

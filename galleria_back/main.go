@@ -37,6 +37,7 @@ func main() {
 		&models.Report{},
 		&models.PasswordReset{},
 		&models.Review{},
+		&models.PushSubscription{},
 	)
 
 	db.SeedEvents()
@@ -115,6 +116,8 @@ func main() {
 		protected.POST("/events/:id/review", handlers.CreateReview)
 		protected.POST("/checkin",              handlers.CheckInAttendee)
 protected.GET("/events/:id/checkin",    handlers.GetCheckinStats)
+protected.POST("/push/subscribe", handlers.SavePushSubscription)
+
 
 	}
 
