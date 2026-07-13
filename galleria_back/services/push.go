@@ -26,7 +26,7 @@ func SendPush(endpoint, p256dh, auth string, payload PushPayload) error {
 	}, &webpush.Options{
 		VAPIDPublicKey:  os.Getenv("VAPID_PUBLIC_KEY"),
 		VAPIDPrivateKey: os.Getenv("VAPID_PRIVATE_KEY"),
-		VAPIDEmail:      os.Getenv("VAPID_EMAIL"),
+		Subscriber:      os.Getenv("VAPID_EMAIL"),
 		TTL:             30,
 	})
 	if err != nil {
