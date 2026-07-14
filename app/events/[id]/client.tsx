@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { events, EventDetail } from '@/app/lib/api'
+import { events, payments, EventDetail } from '@/app/lib/api'
 import Cookies from 'js-cookie'
 import { Calendar, MapPin, Users, ArrowLeft, CheckCircle2, AlertCircle, Share2, Copy, Check, ThumbsUp, ThumbsDown, Bookmark } from 'lucide-react'
 
@@ -141,6 +141,19 @@ const handleSaveEvent = async () => {
       router.push('/auth/login')
       return
     }
+
+    if (!event?.is_free && event?.price > 0) {
+      setBooking(true)
+      try {
+        const res = await payments.initiateTicket(Number(id))
+        window.location.href = res.data.authorization_url
+      } catch (err: any) {
+        setError(err.response?.data?.error || 'Payment initiation failed')
+        setBooking(false)
+      }
+      return
+    }
+
     setBooking(true)
     setError('')
     try {
@@ -337,7 +350,12 @@ const handleSaveEvent = async () => {
                 disabled={booking}
                 className="bg-[#14131F] text-white px-8 py-3 text-sm font-medium disabled:opacity-50 hover:bg-[#3730A9] transition-colors"
               >
-                {booking ? 'Booking...' : 'Book my spot'}
+                {booking
+                  ? 'Processing...'
+                  : event.is_free
+                    ? 'Book my spot'
+                    : `Pay KES ${event.price.toLocaleString()}`
+                }
               </button>
             )}
 

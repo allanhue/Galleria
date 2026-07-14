@@ -9,7 +9,7 @@ import Cookies from 'js-cookie'
 import {
   UserCircle2, Bookmark, Repeat2, MessageSquare,
   CalendarCheck, ChevronUp, Camera, Loader2,
-  LogOut, LayoutDashboard, Settings
+  LogOut, LayoutDashboard, Settings, CreditCard
 } from 'lucide-react'
 
 export default function ProfilePage() {
@@ -187,13 +187,22 @@ export default function ProfilePage() {
       {/* Actions — bottom of profile */}
       <div className="flex flex-col gap-3 border-t border-[#E4E1D8] pt-6">
         {user?.role === 'organizer' && (
-          <NextLink
-            href="/dashboard"
-            className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#14131F] border border-[#E4E1D8] px-4 py-2.5 w-fit transition-colors"
-          >
-            <LayoutDashboard size={15} />
-            Organizer dashboard
-          </NextLink>
+          <>
+            <NextLink
+              href="/dashboard"
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#14131F] border border-[#E4E1D8] px-4 py-2.5 w-fit transition-colors"
+            >
+              <LayoutDashboard size={15} />
+              Organizer dashboard
+            </NextLink>
+            <NextLink
+              href="/dashboard/billing"
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#14131F] border border-[#E4E1D8] px-4 py-2.5 w-fit transition-colors"
+            >
+              <CreditCard size={15} />
+              Billing & plan
+            </NextLink>
+          </>
         )}
         <button
           onClick={() => {

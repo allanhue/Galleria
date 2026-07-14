@@ -5,9 +5,11 @@ import (
 	"galleria_back/db"
 	"galleria_back/models"
 	"galleria_back/services"
+	"math"
 	"net/http"
-    "math"
 	"strconv"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -63,7 +65,7 @@ func GetEvent(c *gin.Context) {
 		"date": event.Date, "location": event.Location, "city": event.City,
 		"country": event.Country, "category": event.Category, "capacity": event.Capacity,
 		"organizer_id": event.OrganizerID, "source": event.Source, "photo_urls": event.PhotoURLs,
-		"created_at": event.CreatedAt,
+		"created_at":      event.CreatedAt,
 		"spots_taken":     bookedCount,
 		"spots_remaining": int64(event.Capacity) - bookedCount,
 		"sold_out":        bookedCount >= int64(event.Capacity),
@@ -92,6 +94,23 @@ func CreateEvent(c *gin.Context) {
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})
 		return
+	}
+
+	var plan models.OrganizerPlan
+	isPro := false
+	if db.DB.Where("user_id = ? AND plan = ?", userID, "pro").First(&plan).Error == nil {
+		isPro = !time.Now().After(plan.CurrentPeriodEnd)
+	}
+
+	if !isPro {
+		var eventCount int64
+		db.DB.Model(&models.Event{}).Where("organizer_id = ?", userID).Count(&eventCount)
+		if eventCount >= 3 {
+			c.JSON(http.StatusForbidden, gin.H{
+				"error": "Free plan allows up to 3 events. Upgrade to Pro for unlimited events.",
+			})
+			return
+		}
 	}
 
 	event := models.Event{
@@ -170,7 +189,6 @@ func BookEvent(c *gin.Context) {
 	c.JSON(http.StatusCreated, booking)
 }
 
-
 func UpdateEvent(c *gin.Context) {
 	id := c.Param("id")
 	userID, _ := c.Get("user_id")
@@ -230,11 +248,11 @@ func DeleteEvent(c *gin.Context) {
 
 func GetAllEvents(c *gin.Context) {
 	category := c.Query("category")
-	city     := c.Query("city")
-	country  := c.Query("country")
-	search   := c.Query("search")
-	page     := 1
-	limit    := 12
+	city := c.Query("city")
+	country := c.Query("country")
+	search := c.Query("search")
+	page := 1
+	limit := 12
 
 	if p := c.Query("page"); p != "" {
 		if n, err := strconv.Atoi(p); err == nil && n > 0 {
@@ -244,10 +262,16 @@ func GetAllEvents(c *gin.Context) {
 	offset := (page - 1) * limit
 
 	query := db.DB.Model(&models.Event{})
-	if category != "" { query = query.Where("category = ?", category) }
-	if city     != "" { query = query.Where("city ILIKE ?",     "%"+city+"%") }
-	if country  != "" { query = query.Where("country ILIKE ?",  "%"+country+"%") }
-	if search   != "" {
+	if category != "" {
+		query = query.Where("category = ?", category)
+	}
+	if city != "" {
+		query = query.Where("city ILIKE ?", "%"+city+"%")
+	}
+	if country != "" {
+		query = query.Where("country ILIKE ?", "%"+country+"%")
+	}
+	if search != "" {
 		query = query.Where("title ILIKE ? OR description ILIKE ? OR location ILIKE ?",
 			"%"+search+"%", "%"+search+"%", "%"+search+"%")
 	}
@@ -259,14 +283,13 @@ func GetAllEvents(c *gin.Context) {
 	query.Order("created_at desc").Limit(limit).Offset(offset).Find(&dbEvents)
 
 	c.JSON(http.StatusOK, gin.H{
-		"events":  dbEvents,
-		"total":   total,
-		"page":    page,
-		"limit":   limit,
-		"pages":   int(math.Ceil(float64(total) / float64(limit))),
+		"events": dbEvents,
+		"total":  total,
+		"page":   page,
+		"limit":  limit,
+		"pages":  int(math.Ceil(float64(total) / float64(limit))),
 	})
 }
-
 
 func GetTrendingEvents(c *gin.Context) {
 	type TrendingEvent struct {

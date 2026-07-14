@@ -41,6 +41,8 @@ export interface Event {
   organizer_id: number
   source: string
   photo_urls?: string[]
+  is_free: boolean
+  price: number
 }
 
 export interface RSSItem {
@@ -247,6 +249,25 @@ export interface UserSettings {
 }
 
 
+export interface Payment {
+  id: number
+  user_id: number
+  event_id?: number
+  type: string
+  amount: number
+  currency: string
+  status: string
+  reference: string
+  subscription_plan?: string
+  created_at: string
+}
+
+export interface OrganizerPlan {
+  plan: string
+  current_period_end?: string
+}
+
+
 
 
 export const profile = {
@@ -284,11 +305,12 @@ export const events = {
   getOne: (id: number) =>
     api.get<EventDetail>(`/events/${id}`),
 
-  create: (data: {
-    title: string; description: string; date: string; location: string
-    category: string; capacity: number; city?: string; country?: string
-    photo_urls?: string[]
-  }) => api.post<Event>('/events', data),
+create: (data: {
+  title: string; description: string; date: string
+  location: string; category: string; capacity: number
+  city?: string; country?: string; photo_urls?: string[]
+  is_free?: boolean; price?: number
+}) => api.post<Event>('/events', data),
 
   update: (id: number, data: Partial<Event>) =>
     api.put<Event>(`/events/${id}`, data),
@@ -428,6 +450,24 @@ export const settings = {
     api.put('/settings/password', data),
 }
 
+
+export const payments = {
+  initiateTicket: (eventId: number) =>
+    api.post<{ authorization_url: string; reference: string; amount: number }>(
+      `/events/${eventId}/pay`
+    ),
+
+  subscribe: (plan: string) =>
+    api.post<{ authorization_url: string; reference: string }>(
+      '/payments/subscribe', { plan }
+    ),
+
+  getMyPayments: () =>
+    api.get<Payment[]>('/payments/my'),
+
+  getPlan: () =>
+    api.get<OrganizerPlan>('/payments/plan'),
+}
 
 
 export default api

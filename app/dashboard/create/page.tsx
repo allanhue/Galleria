@@ -23,6 +23,8 @@ export default function CreateEventPage() {
     country: '',
     category: 'Music',
     capacity: 100,
+    is_free: true,
+    price: 0,
   })
   const [photos, setPhotos] = useState<string[]>([])
   const [uploading, setUploading] = useState(false)
@@ -191,6 +193,49 @@ export default function CreateEventPage() {
               required
             />
           </div>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <label className="text-sm font-medium">Ticket pricing</label>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setForm({ ...form, is_free: true, price: 0 })}
+              className={`flex-1 py-2.5 text-sm border transition-colors ${
+                form.is_free
+                  ? 'border-[#3730A9] bg-[#EEEDFB] text-[#3730A9] font-medium'
+                  : 'border-[#E4E1D8] text-gray-500 hover:bg-[#FAF9F6]'
+              }`}
+            >
+              Free
+            </button>
+            <button
+              type="button"
+              onClick={() => setForm({ ...form, is_free: false })}
+              className={`flex-1 py-2.5 text-sm border transition-colors ${
+                !form.is_free
+                  ? 'border-[#3730A9] bg-[#EEEDFB] text-[#3730A9] font-medium'
+                  : 'border-[#E4E1D8] text-gray-500 hover:bg-[#FAF9F6]'
+              }`}
+            >
+              Paid
+            </button>
+          </div>
+
+          {!form.is_free && (
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium">Price (KES)</label>
+              <input
+                type="number"
+                min={1}
+                placeholder="e.g. 500"
+                value={form.price || ''}
+                onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
+                className="border border-[#E4E1D8] px-4 py-2.5 text-sm outline-none focus:border-[#3730A9]"
+                required={!form.is_free}
+              />
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
