@@ -41,6 +41,8 @@ func main() {
 		&models.EventLike{},
 	   &models.EventSave{},
 	   	&models.UserSettings{},
+		&models.Payment{},
+	&models.OrganizerPlan{},
 
 	)
 
@@ -69,6 +71,9 @@ func main() {
 	r.GET("/events/:id", handlers.GetEvent)
 	r.GET("/events/:id/reviews", handlers.GetEventReviews)
 	r.GET("/events/:id/likes", handlers.GetEventLikes)
+	r.POST("/payments/webhook", handlers.PaystackWebhook)
+r.GET("/payments/verify",   handlers.VerifyPayment)
+
 
 
 	// Protected routes
@@ -133,6 +138,10 @@ protected.PUT("/settings",          handlers.UpdateSettings)
 protected.PUT("/settings/account",  handlers.UpdateAccountInfo)
 protected.PUT("/settings/password", handlers.ChangePassword)
 
+protected.POST("/events/:id/pay",       handlers.InitiateTicketPayment)
+protected.POST("/payments/subscribe",   handlers.InitiateSubscription)
+protected.GET("/payments/my",           handlers.GetMyPayments)
+protected.GET("/payments/plan",         handlers.GetOrganizerPlan)
 
 	}
 
