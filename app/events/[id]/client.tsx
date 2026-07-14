@@ -142,7 +142,7 @@ const handleSaveEvent = async () => {
       return
     }
 
-    if (!event?.is_free && event?.price > 0) {
+    if (event && !event.is_free && (event.price ?? 0) > 0) {
       setBooking(true)
       try {
         const res = await payments.initiateTicket(Number(id))
