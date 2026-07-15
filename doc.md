@@ -66,7 +66,7 @@ The app is distributed as:
                          │
 ┌────────────────────────▼────────────────────────────┐
 │              PostgreSQL (Neon)                      │
-│  Cloud-hosted, serverless, free tier                │
+│  Cloud-hosted, serverless               │
 └─────────────────────────────────────────────────────┘
                          │
          ┌───────────────▼──────────────┐
@@ -114,7 +114,7 @@ Galleria/
 │   │   ├── block_button.tsx
 │   │   └── report_modal.tsx
 │   ├── lib/
-│   │   ├── api.ts              ← all API calls
+│   │   ├── api.ts              
 │   │   └── upload.ts           ← Cloudinary upload helper
 │   ├── layout.tsx
 │   ├── page.tsx                ← homepage
@@ -321,58 +321,16 @@ Upload `app-release.apk` to APKPure → Manage Versions → Upload.
 | Method | Path | Description |
 |---|---|---|
 | POST | `/auth/register` | Create account |
-| POST | `/auth/login` | Login, returns JWT |
-| POST | `/auth/forgot-password` | Send reset code email |
-| POST | `/auth/reset-password` | Reset with code |
-| GET | `/events` | List events (search, filter, paginate) |
-| GET | `/events/trending` | Top 6 events by bookings |
-| GET | `/events/cities` | List distinct cities |
-| GET | `/events/:id` | Single event + capacity stats |
-| GET | `/events/:id/reviews` | Event reviews + avg rating |
-| GET | `/events/feed` | RSS-sourced events by region |
 
-### Protected routes (JWT required)
-
+### Protected routes (JWT required) some of the apis 
 | Method | Path | Description |
 |---|---|---|
 | GET | `/profile/me` | Own profile + stats |
 | PUT | `/profile/avatar` | Update avatar URL |
 | POST | `/events` | Create event |
 | PUT | `/events/:id` | Update own event |
-| DELETE | `/events/:id` | Delete own event |
-| POST | `/events/:id/book` | Book a spot |
-| POST | `/events/:id/review` | Submit star review |
-| GET | `/events/:id/attendees` | Attendee list (organizer only) |
-| GET | `/bookings/my` | My bookings |
-| GET | `/community` | List community posts |
-| POST | `/community` | Create post |
-| POST | `/community/:id/vote` | Vote up/down |
-| POST | `/community/:id/comment` | Add comment |
-| GET | `/community/:id/comments` | Get comments |
-| DELETE | `/community/comment/:commentId` | Delete own comment |
-| POST | `/community/:id/save` | Toggle save |
-| POST | `/community/:id/repost` | Repost |
-| DELETE | `/community/:id` | Delete own post |
-| GET | `/notifications` | Get notifications (auto-expire 24h) |
-| PUT | `/notifications/read` | Mark all read |
-| DELETE | `/notifications/:id` | Dismiss notification |
-| POST | `/follow/:userId` | Follow user |
-| DELETE | `/follow/:userId` | Unfollow user |
-| GET | `/follow/:userId/status` | Follow status |
-| GET | `/follow/following` | List who I follow |
-| POST | `/messages/start/:userId` | Start conversation |
-| GET | `/messages/conversations` | List conversations |
-| GET | `/messages/:id` | Get messages in conversation |
-| POST | `/messages/:id` | Send message |
-| GET | `/messages/unread` | Unread message count |
-| POST | `/block/:userId` | Block user |
-| DELETE | `/block/:userId` | Unblock user |
-| GET | `/block/mine` | List blocked users |
-| POST | `/report` | Submit report |
-| GET | `/discover/people` | Suggested people |
-| GET | `/dashboard/stats` | Organizer stats |
-| GET | `/admin/reports` | Report queue (system_admin only) |
-| PUT | `/admin/reports/:id` | Update report status |
+
+
 
 ---
 
@@ -438,17 +396,6 @@ Upload `app-release.apk` to APKPure → Manage Versions → Upload.
 
 ---
 
-## 12. Releasing a New APK
-
-When to release a new APK (vs just pushing to GitHub):
-
-| Change type | New APK needed? |
-|---|---|
-| UI changes, new pages, API changes | ❌ No — push to GitHub, Vercel rebuilds |
-| App icon, name, splash screen | ✅ Yes |
-| New Capacitor plugins or permissions | ✅ Yes |
-| `capacitor.config.ts` changes | ✅ Yes |
-
 Version tracking in `android/app/build.gradle`:
 ```gradle
 versionCode 2        ← increment by 1 each APK release
@@ -464,11 +411,11 @@ versionName "1.1"    ← semantic version shown to users
 - [ ] QR code check-in for organizers
 - [ ] Push notifications (Web Push API + VAPID)
 
-### Planned
+### Planned Features
 - [ ] Photo/video status on profiles (24h expiry, stories-style)
 - [ ] Event waitlist (auto-notify when spot opens)
 - [ ] Organizer following stats (who follows which organizers)
-- [ ] Multi-language support (Swahili first)
+- [ ] Multi-language support ()
 - [ ] iOS PWA improvements
 
 ### Completed
