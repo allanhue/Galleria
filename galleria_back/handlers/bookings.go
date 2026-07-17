@@ -1,11 +1,12 @@
 package handlers
 
 import (
-    "galleria_back/db"
-    "galleria_back/models"
-    "net/http"
-    "fmt"
-    "github.com/gin-gonic/gin"
+	"fmt"
+	"galleria_back/db"
+	"galleria_back/models"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func GetMyBookings(c *gin.Context) {
