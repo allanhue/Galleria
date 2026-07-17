@@ -9,10 +9,21 @@ import (
 )
 
 func GetMyBookings(c *gin.Context) {
-    userID, _ := c.Get("user_id")
+	userID, _ := c.Get("user_id")
 
-    var bookings []models.Booking
-    db.DB.Preload("Event").Where("user_id = ?", userID).Find(&bookings)
+	var bookings []models.Booking
+	db.DB.Preload("Event").
+		Where("user_id = ?", userID).
+		Find(&bookings)
 
-    c.JSON(http.StatusOK, bookings)
+	// backfill missing QR tokens
+	for i, b := range bookings {
+		if b.QRToken == "" {
+			token := fmt.Sprintf("%d-%d", b.UserID, b.ID)
+			db.DB.Model(&bookings[i]).Update("qr_token", token)
+			bookings[i].QRToken = token
+		}
+	}
+
+	c.JSON(http.StatusOK, bookings)
 }

@@ -73,6 +73,28 @@ func GetEvent(c *gin.Context) {
 }
 
 func CreateEvent(c *gin.Context) {
+	userID, _ := c.Get("user_id")
+
+	// Check plan limits — fixed query
+	var eventCount int64
+	db.DB.Model(&models.Event{}).
+		Where("organizer_id = ?", userID.(uint)).
+		Count(&eventCount)
+
+	// Check if pro
+	var plan models.OrganizerPlan
+	isPro := false
+	if err := db.DB.Where("user_id = ?", userID.(uint)).First(&plan).Error; err == nil {
+		isPro = plan.Plan == "pro" && time.Now().Before(plan.CurrentPeriodEnd)
+	}
+
+	if !isPro && eventCount >= 3 {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "Free plan allows up to 3 events. Upgrade to Pro for unlimited events.",
+		})
+		return
+	}
+
 	var input struct {
 		Title       string   `json:"title"       binding:"required"`
 		Description string   `json:"description" binding:"required"`
@@ -83,34 +105,13 @@ func CreateEvent(c *gin.Context) {
 		PhotoURLs   []string `json:"photo_urls"`
 		City        string   `json:"city"`
 		Country     string   `json:"country"`
+		IsFree      bool     `json:"is_free"`
+		Price       int64    `json:"price"`
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
-	}
-
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})
-		return
-	}
-
-	var plan models.OrganizerPlan
-	isPro := false
-	if db.DB.Where("user_id = ? AND plan = ?", userID, "pro").First(&plan).Error == nil {
-		isPro = !time.Now().After(plan.CurrentPeriodEnd)
-	}
-
-	if !isPro {
-		var eventCount int64
-		db.DB.Model(&models.Event{}).Where("organizer_id = ?", userID).Count(&eventCount)
-		if eventCount >= 3 {
-			c.JSON(http.StatusForbidden, gin.H{
-				"error": "Free plan allows up to 3 events. Upgrade to Pro for unlimited events.",
-			})
-			return
-		}
 	}
 
 	event := models.Event{
@@ -125,6 +126,8 @@ func CreateEvent(c *gin.Context) {
 		Country:     input.Country,
 		Source:      "own",
 		OrganizerID: userID.(uint),
+		IsFree:      input.IsFree,
+		Price:       input.Price,
 	}
 
 	if err := db.DB.Create(&event).Error; err != nil {
@@ -237,7 +240,9 @@ func DeleteEvent(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
 		return
 	}
-	if event.OrganizerID != userID.(uint) {
+
+	// Allow delete if organizer_id matches OR if organizer_id is 0 (legacy seeded events)
+	if event.OrganizerID != userID.(uint) && event.OrganizerID != 0 {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Not your event"})
 		return
 	}

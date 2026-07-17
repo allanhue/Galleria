@@ -14,19 +14,30 @@ func CheckInAttendee(c *gin.Context) {
 	var input struct {
 		Token string `json:"token" binding:"required"`
 	}
+
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	// Also accept token from query param as fallback
+	token := input.Token
+	if token == "" {
+		token = c.Query("token")
+	}
+
+	if token == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Token is required"})
+		return
+	}
+
 	var booking models.Booking
 	if err := db.DB.Preload("User").Preload("Event").
-		Where("qr_token = ?", input.Token).First(&booking).Error; err != nil {
+		Where("qr_token = ?", token).First(&booking).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Invalid QR code"})
 		return
 	}
 
-	// confirm caller is the event organizer
 	if booking.Event.OrganizerID != userID.(uint) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Only the event organizer can check in attendees"})
 		return
