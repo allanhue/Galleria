@@ -99,11 +99,13 @@ const [stats, setStats] = useState<{ total_events: number; total_bookings: numbe
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {myEvents.map((event) => (
-              <div
-                key={event.id}
-                className="border border-[#E4E1D8] bg-white p-4 flex items-center justify-between hover:bg-[#FAF9F6] transition-colors"
-              >
+            {myEvents
+              .filter((event) => event?.id)
+              .map((event) => (
+                <div
+                  key={event.id}
+                  className="border border-[#E4E1D8] bg-white p-4 flex items-center justify-between hover:bg-[#FAF9F6] transition-colors"
+                >
                 <div className="flex flex-col gap-1">
                   <p className="font-medium text-sm">{event.title}</p>
                   <p className="text-xs text-gray-400">

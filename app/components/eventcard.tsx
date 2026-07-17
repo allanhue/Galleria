@@ -10,6 +10,8 @@ interface Props {
 }
 
 export default function EventCard({ event }: Props) {
+  if (!event?.id) return null
+
   const handleBook = async (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
     try {

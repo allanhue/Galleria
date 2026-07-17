@@ -85,11 +85,13 @@ function EventsContent() {
             <section className="flex flex-col gap-4">
               <h2 className="text-base font-medium text-gray-700">Upcoming globally</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {dbEvents.map((event) => (
-                  <div
-                    key={event.id}
-                    className="border border-[#E4E1D8] bg-white flex flex-col hover:shadow-sm transition"
-                  >
+                {dbEvents
+                  .filter((event) => event?.id)
+                  .map((event) => (
+                    <div
+                      key={event.id}
+                      className="border border-[#E4E1D8] bg-white flex flex-col hover:shadow-sm transition"
+                    >
                     {event.photo_urls && event.photo_urls.length > 0 ? (
                       <div className="aspect-video w-full overflow-hidden">
                         <img

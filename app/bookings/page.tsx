@@ -60,13 +60,15 @@ export default function BookingsPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Link
-                  href={`/events/${booking.event_id}`}
-                  onClick={(e) => e.stopPropagation()}
-                  className="text-xs border border-[#E4E1D8] px-3 py-1.5 hover:bg-[#FAF9F6] transition-colors"
-                >
-                  View
-                </Link>
+                {booking.event_id ? (
+                  <Link
+                    href={`/events/${booking.event_id}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-xs border border-[#E4E1D8] px-3 py-1.5 hover:bg-[#FAF9F6] transition-colors"
+                  >
+                    View
+                  </Link>
+                ) : null}
                 {expanded === booking.id
                   ? <ChevronUp size={16} className="text-gray-400" />
                   : <ChevronDown size={16} className="text-gray-400" />

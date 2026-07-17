@@ -99,12 +99,14 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {trending.map((event) => (
-              <Link
-                key={event.id}
-                href={`/events/${event.id}`}
-                className="group overflow-hidden border border-[#E4E1D8] bg-white transition hover:-translate-y-0.5 hover:shadow-[0_14px_35px_rgba(20,19,31,0.08)]"
-              >
+            {trending
+              .filter((event) => event?.id)
+              .map((event) => (
+                <Link
+                  key={event.id}
+                  href={`/events/${event.id}`}
+                  className="group overflow-hidden border border-[#E4E1D8] bg-white transition hover:-translate-y-0.5 hover:shadow-[0_14px_35px_rgba(20,19,31,0.08)]"
+                >
                 {event.photo_urls && event.photo_urls.length > 0 ? (
                   <div className="aspect-video overflow-hidden bg-[#FAF9F6]">
                     <img
