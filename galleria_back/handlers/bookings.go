@@ -4,7 +4,7 @@ import (
     "galleria_back/db"
     "galleria_back/models"
     "net/http"
-
+    "fmt"
     "github.com/gin-gonic/gin"
 )
 
