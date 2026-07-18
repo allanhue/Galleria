@@ -43,6 +43,8 @@ func main() {
 	   	&models.UserSettings{},
 		&models.Payment{},
 	&models.OrganizerPlan{},
+	&models.Waitlist{},
+
 
 	)
 
@@ -142,6 +144,14 @@ protected.POST("/events/:id/pay",       handlers.InitiateTicketPayment)
 protected.POST("/payments/subscribe",   handlers.InitiateSubscription)
 protected.GET("/payments/my",           handlers.GetMyPayments)
 protected.GET("/payments/plan",         handlers.GetOrganizerPlan)
+
+
+protected.POST("/events/:id/waitlist",        handlers.JoinWaitlist)
+protected.DELETE("/events/:id/waitlist",      handlers.LeaveWaitlist)
+protected.GET("/events/:id/waitlist/status",  handlers.GetWaitlistStatus)
+protected.PUT("/bookings/:id/cancel",         handlers.CancelBooking)
+protected.GET("/analytics/overview",      handlers.GetOrganizerOverview)
+protected.GET("/analytics/events/:id",    handlers.GetEventAnalytics)
 
 	}
 
