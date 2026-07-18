@@ -28,10 +28,6 @@ export default function DashboardPage() {
       .catch(console.error)
       .finally(() => setLoading(false))
 
-    organizerTools.getStats()
-      .then((res) => setStats(res.data))
-      .catch(console.error)
-
     analytics.getOverview()
       .then((res) => setOverview(res.data))
       .catch(console.error)
