@@ -204,6 +204,13 @@ export default function ProfilePage() {
             </NextLink>
           </>
         )}
+        <NextLink
+          href="/saved"
+          className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#14131F] border border-[#E4E1D8] px-4 py-2.5 w-fit transition-colors"
+        >
+          <Bookmark size={15} />
+          Saved events
+        </NextLink>
         <button
           onClick={() => {
             Cookies.remove('token')

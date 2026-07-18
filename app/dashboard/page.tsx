@@ -1,18 +1,18 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { events, Event, organizerTools } from '@/app/lib/api'
+import { analytics, events, Event, organizerTools } from '@/app/lib/api'
 import Spinner from '@/app/components/spinner'
 import Cookies from 'js-cookie'
 import Link from 'next/link'
-import { Pencil, QrCode, Trash2, Users } from 'lucide-react'
+import { BarChart2, Pencil, QrCode, Trash2, Users } from 'lucide-react'
 
 export default function DashboardPage() {
   const router = useRouter()
   const [myEvents, setMyEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
-const [stats, setStats] = useState<{ total_events: number; total_bookings: number } | null>(null)
+  const [overview, setOverview] = useState<any>(null)
 
   useEffect(() => {
     const stored = Cookies.get('user')
@@ -30,6 +30,10 @@ const [stats, setStats] = useState<{ total_events: number; total_bookings: numbe
 
     organizerTools.getStats()
       .then((res) => setStats(res.data))
+      .catch(console.error)
+
+    analytics.getOverview()
+      .then((res) => setOverview(res.data))
       .catch(console.error)
   }, [])
 
@@ -65,8 +69,10 @@ const [stats, setStats] = useState<{ total_events: number; total_bookings: numbe
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: 'Your events', value: stats?.total_events ?? 0 },
-          { label: 'Total bookings', value: stats?.total_bookings ?? 0 },
+          { label: 'Your events', value: overview?.total_events ?? 0 },
+          { label: 'Total bookings', value: overview?.total_bookings ?? 0 },
+          { label: 'Revenue KES', value: overview?.total_revenue ?? 0 },
+          { label: 'This week', value: overview?.bookings_week ?? 0 },
         ].map((stat) => (
           <div key={stat.label} className="border border-[#E4E1D8] p-4 flex flex-col gap-1 bg-white">
             <p className="text-xs text-gray-400">{stat.label}</p>
@@ -135,6 +141,12 @@ const [stats, setStats] = useState<{ total_events: number; total_bookings: numbe
                         className="text-xs border border-[#E4E1D8] p-1.5 hover:bg-[#FAF9F6] transition-colors"
                       >
                         <QrCode size={13} />
+                      </Link>
+                      <Link
+                        href={`/dashboard/analytics/${event.id}`}
+                        className="text-xs border border-[#E4E1D8] p-1.5 hover:bg-[#FAF9F6] transition-colors"
+                      >
+                        <BarChart2 size={13} />
                       </Link>
                       <Link
                         href={`/dashboard/edit/${event.id}`}

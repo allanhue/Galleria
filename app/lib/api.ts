@@ -267,6 +267,35 @@ export interface OrganizerPlan {
   current_period_end?: string
 }
 
+export interface WaitlistStatus {
+  on_waitlist: boolean
+  position: number
+}
+
+export interface EventAnalytics {
+  event: Event
+  booked: number
+  capacity: number
+  checked_in: number
+  waitlist: number
+  revenue_kes: number
+  likes: number
+  dislikes: number
+  saves: number
+  avg_rating: number
+  review_count: number
+  fill_rate: number
+  daily_bookings: { date: string; count: number }[]
+}
+
+export interface OrganizerOverview {
+  total_events: number
+  total_bookings: number
+  total_revenue: number
+  avg_rating: number
+  bookings_week: number
+}
+
 
 
 
@@ -468,6 +497,22 @@ export const payments = {
   getPlan: () =>
     api.get<OrganizerPlan>('/payments/plan'),
 }
+
+export const waitlist = {
+  join: (eventId: number) => api.post(`/events/${eventId}/waitlist`),
+  leave: (eventId: number) => api.delete(`/events/${eventId}/waitlist`),
+  getStatus: (eventId: number) => api.get<WaitlistStatus>(`/events/${eventId}/waitlist/status`),
+}
+
+export const analytics = {
+  getOverview: () => api.get<OrganizerOverview>('/analytics/overview'),
+  getEvent: (eventId: number) => api.get<EventAnalytics>(`/analytics/events/${eventId}`),
+}
+
+export const bookings = {
+  cancel: (bookingId: number) => api.put(`/bookings/${bookingId}/cancel`),
+}
+
 
 
 export default api

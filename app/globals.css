@@ -4,13 +4,6 @@
   box-sizing: border-box;
 }
 
-:root {
-  --color-ink: #14131F;
-  --color-accent: #3730A9;
-  --color-accent-soft: #EEEDFB;
-  --color-bg: #FAF9F6;
-  --color-border: #E4E1D8;
-}
 
 body {
   background: var(--color-bg);
@@ -20,3 +13,26 @@ body {
 .card, .btn, .input, .chip {
   border-radius: 4px;
 }
+
+
+
+:root {
+  --color-ink: #14131F;
+  --color-accent: #3730A9;
+  --color-accent-soft: #EEEDFB;
+  --color-bg: #FAF9F6;
+  --color-border: #E4E1D8;
+  --color-surface: #ffffff;
+  --color-surface-2: #F5F4F0;
+}
+
+[data-theme="dark"] {
+  --color-ink: #F0EEE8;
+  --color-accent: #7F7AE8;
+  --color-accent-soft: #1E1C3A;
+  --color-bg: #0F0F13;
+  --color-border: #2A2836;
+  --color-surface: #17161E;
+  --color-surface-2: #1E1C28;
+}
+

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { settings, UserSettings } from '@/app/lib/api'
+import { applyTheme } from '@/app/lib/theme'
 import Cookies from 'js-cookie'
 import Spinner from '@/app/components/spinner'
 import {
@@ -305,7 +306,10 @@ export default function SettingsPage() {
               {['light', 'dark', 'system'].map((t) => (
                 <button
                   key={t}
-                  onClick={() => updatePref('theme', t)}
+                  onClick={() => {
+                    updatePref('theme', t)
+                    applyTheme(t)
+                  }}
                   className={`flex-1 py-2.5 text-sm border capitalize transition-colors ${
                     prefs.theme === t
                       ? 'border-[#3730A9] bg-[#EEEDFB] text-[#3730A9] font-medium'

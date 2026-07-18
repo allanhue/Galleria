@@ -1,18 +1,52 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { events, Booking } from '@/app/lib/api'
+import { bookings as bookingApi, events, Booking } from '@/app/lib/api'
 import Cookies from 'js-cookie'
 import Link from 'next/link'
 import Spinner from '@/app/components/spinner'
 import { QRCodeSVG } from 'qrcode.react'
-import { ChevronDown, ChevronUp, CheckCircle2 } from 'lucide-react'
+import { ChevronDown, ChevronUp, CheckCircle2, Download, X } from 'lucide-react'
 
 export default function BookingsPage() {
   const router = useRouter()
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState<number | null>(null)
+
+  const downloadTicket = (booking: Booking) => {
+    const content = `
+GALLERIA EVENT TICKET
+=====================
+Event:    ${booking.event?.title}
+Date:     ${booking.event?.date}
+Venue:    ${booking.event?.location}
+Status:   ${booking.checked_in ? 'Checked in ✓' : booking.status}
+Token:    ${booking.qr_token}
+=====================
+Show this at the door.
+    `.trim()
+
+    const blob = new Blob([content], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `galleria-ticket-${booking.id}.txt`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const handleCancel = async (bookingId: number) => {
+    if (!confirm('Cancel this booking?')) return
+    try {
+      await bookingApi.cancel(bookingId)
+      setBookings(bookings.map((b) =>
+        b.id === bookingId ? { ...b, status: 'cancelled' } : b
+      ))
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Failed to cancel')
+    }
+  }
 
   useEffect(() => {
     const token = Cookies.get('token')
@@ -69,6 +103,22 @@ export default function BookingsPage() {
                     View
                   </Link>
                 ) : null}
+                <button
+                  onClick={(e) => { e.stopPropagation(); downloadTicket(booking) }}
+                  className="text-xs border border-[#E4E1D8] p-1.5 hover:bg-[#FAF9F6] transition-colors"
+                  title="Download ticket"
+                >
+                  <Download size={13} />
+                </button>
+                {booking.status === 'confirmed' && !booking.checked_in && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleCancel(booking.id) }}
+                    className="text-xs border border-[#E4E1D8] p-1.5 text-red-400 hover:bg-red-50 transition-colors"
+                    title="Cancel booking"
+                  >
+                    <X size={13} />
+                  </button>
+                )}
                 {expanded === booking.id
                   ? <ChevronUp size={16} className="text-gray-400" />
                   : <ChevronDown size={16} className="text-gray-400" />

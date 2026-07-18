@@ -1,9 +1,9 @@
 'use client'
 import React, { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { events, payments, EventDetail } from '@/app/lib/api'
+import { events, payments, waitlist, EventDetail } from '@/app/lib/api'
 import Cookies from 'js-cookie'
-import { Calendar, MapPin, Users, ArrowLeft, CheckCircle2, AlertCircle, Share2, Copy, Check, ThumbsUp, ThumbsDown, Bookmark } from 'lucide-react'
+import { Calendar, MapPin, Users, ArrowLeft, CheckCircle2, AlertCircle, Share2, Copy, Check, ThumbsUp, ThumbsDown, Bookmark, Clock } from 'lucide-react'
 
 import Spinner from '@/app/components/spinner'
 
@@ -53,6 +53,8 @@ export default function EventDetailClient() {
   const [submittingReview, setSubmittingReview] = useState(false)
   const [reviewError, setReviewError] = useState('')
   const [reviewSuccess, setReviewSuccess] = useState(false)
+  const [waitlistStatus, setWaitlistStatus] = useState<{ on_waitlist: boolean; position: number } | null>(null)
+  const [joiningWaitlist, setJoiningWaitlist] = useState(false)
   const [copied, setCopied] = useState(false)
   const [hasBooked, setHasBooked] = useState(false)
 const [likes, setLikes] = useState(0)
@@ -68,24 +70,12 @@ useEffect(() => {
     .catch(console.error)
     .finally(() => setLoading(false))
 
-
-  events.getLikes(Number(id))
-  .then((res) => {
-    setLikes(res.data.likes)
-    setDislikes(res.data.dislikes)
-    setMyDirection(res.data.my_direction)
-  })
-  .catch(console.error)
-
-// get current user to check if organizer
-const stored = Cookies.get('user')
-if (stored) {
-  try { setCurrentUser(JSON.parse(stored)) } catch {}
-}
-
-  // check if user has ever booked this event
   const token = Cookies.get('token')
   if (token) {
+    waitlist.getStatus(Number(id))
+      .then((res) => setWaitlistStatus(res.data))
+      .catch(console.error)
+
     events.getMyBookings()
       .then((res) => {
         const hasThisBooking = res.data.some(
@@ -96,7 +86,11 @@ if (stored) {
       .catch(console.error)
   }
 
-  // fetch reviews
+  const stored = Cookies.get('user')
+  if (stored) {
+    try { setCurrentUser(JSON.parse(stored)) } catch {}
+  }
+
   fetch(`${process.env.NEXT_PUBLIC_API_URL}/events/${id}/reviews`)
     .then((r) => r.json())
     .then((data) => {
@@ -132,6 +126,26 @@ const handleSaveEvent = async () => {
     setSaved(res.data.saved)
   } catch (err) {
     console.error(err)
+  }
+}
+
+const handleWaitlist = async () => {
+  const token = Cookies.get('token')
+  if (!token) { router.push('/auth/login'); return }
+  setJoiningWaitlist(true)
+  try {
+    if (waitlistStatus?.on_waitlist) {
+      await waitlist.leave(Number(id))
+      setWaitlistStatus({ on_waitlist: false, position: 0 })
+    } else {
+      await waitlist.join(Number(id))
+      const status = await waitlist.getStatus(Number(id))
+      setWaitlistStatus(status.data)
+    }
+  } catch (err: any) {
+    setError(err.response?.data?.error || 'Failed')
+  } finally {
+    setJoiningWaitlist(false)
   }
 }
 
@@ -341,9 +355,28 @@ const handleSaveEvent = async () => {
                 You are booked
               </div>
             ) : event.sold_out ? (
-              <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 text-gray-500 px-5 py-4 text-sm font-medium">
-                Sold out
-              </div>
+              <>
+                <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 text-gray-500 px-5 py-4 text-sm font-medium">
+                  Sold out
+                </div>
+                <button
+                  onClick={handleWaitlist}
+                  disabled={joiningWaitlist}
+                  className={`flex items-center gap-2 border px-5 py-3 text-sm font-medium transition-colors disabled:opacity-50 ${
+                    waitlistStatus?.on_waitlist
+                      ? 'border-red-200 text-red-500 hover:bg-red-50'
+                      : 'border-[#E4E1D8] text-gray-600 hover:border-[#3730A9] hover:text-[#3730A9]'
+                  }`}
+                >
+                  <Clock size={15} />
+                  {joiningWaitlist
+                    ? 'Processing...'
+                    : waitlistStatus?.on_waitlist
+                      ? `On waitlist (position ${waitlistStatus.position})`
+                      : 'Join waitlist'
+                  }
+                </button>
+              </>
             ) : (
               <button
                 onClick={handleBook}
