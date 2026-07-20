@@ -22,7 +22,6 @@ func generateReference() string {
 	return fmt.Sprintf("GAL-%d-%d", time.Now().UnixMilli(), rand.Intn(9999))
 }
 
-// InitiateTicketPayment — attendee pays for a paid event
 func InitiateTicketPayment(c *gin.Context) {
 	eventID := c.Param("id")
 	userID, _ := c.Get("user_id")
@@ -41,7 +40,6 @@ func InitiateTicketPayment(c *gin.Context) {
 	var user models.User
 	db.DB.First(&user, userID)
 
-	// check not already booked
 	var existing models.Booking
 	if db.DB.Where("user_id = ? AND event_id = ?", userID, eventID).First(&existing).Error == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Already booked"})
@@ -49,9 +47,8 @@ func InitiateTicketPayment(c *gin.Context) {
 	}
 
 	reference := generateReference()
-	amountKobo := event.Price * 100 // Paystack uses smallest currency unit
+	amountKobo := event.Price * 100
 
-	// save pending payment
 	eid := event.ID
 	db.DB.Create(&models.Payment{
 		UserID:    userID.(uint),
@@ -67,14 +64,8 @@ func InitiateTicketPayment(c *gin.Context) {
 		"https://galleria-b1yq.onrender.com", reference)
 
 	result, err := services.PaystackInitialize(
-		user.Email,
-		amountKobo,
-		reference,
-		callbackURL,
-		map[string]interface{}{
-			"event_id": event.ID,
-			"user_id":  userID,
-		},
+		user.Email, amountKobo, reference, callbackURL,
+		map[string]interface{}{"event_id": event.ID, "user_id": userID},
 	)
 	if err != nil || !result.Status {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Payment initialization failed"})
@@ -88,45 +79,42 @@ func InitiateTicketPayment(c *gin.Context) {
 	})
 }
 
-// VerifyPayment — called after Paystack redirects back
 func VerifyPayment(c *gin.Context) {
 	reference := c.Query("ref")
 	if reference == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Reference required"})
+		c.Redirect(http.StatusFound, "https://galleria-flame-ten.vercel.app/bookings?error=missing_ref")
 		return
 	}
 
 	result, err := services.PaystackVerify(reference)
 	if err != nil || result.Data.Status != "success" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Payment verification failed"})
+		c.Redirect(http.StatusFound, "https://galleria-flame-ten.vercel.app/bookings?error=payment_failed")
 		return
 	}
 
 	var payment models.Payment
 	if err := db.DB.Where("reference = ?", reference).First(&payment).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Payment not found"})
+		c.Redirect(http.StatusFound, "https://galleria-flame-ten.vercel.app/bookings?error=not_found")
 		return
 	}
 
 	if payment.Status == "success" {
-		c.JSON(http.StatusOK, gin.H{"message": "Already verified"})
+		c.Redirect(http.StatusFound, "https://galleria-flame-ten.vercel.app/bookings?success=already_verified")
 		return
 	}
 
-	// mark payment success
 	db.DB.Model(&payment).Updates(map[string]interface{}{
 		"status":       "success",
 		"paystack_ref": result.Data.Reference,
 	})
 
-	// create booking
 	if payment.EventID != nil {
-		import_uuid := fmt.Sprintf("%d-%d", payment.UserID, time.Now().UnixNano())
+		qrToken := fmt.Sprintf("%d-%d", payment.UserID, time.Now().UnixNano())
 		booking := models.Booking{
 			UserID:  payment.UserID,
 			EventID: *payment.EventID,
 			Status:  "confirmed",
-			QRToken: import_uuid,
+			QRToken: qrToken,
 		}
 		db.DB.Create(&booking)
 
@@ -135,25 +123,51 @@ func VerifyPayment(c *gin.Context) {
 		db.DB.First(&user, payment.UserID)
 		db.DB.First(&event, *payment.EventID)
 
-		services.SendMail(user.Email, user.Name,
+		services.SendMail(
+			user.Email, user.Name,
 			"Payment Confirmed — "+event.Title,
 			fmt.Sprintf(`
 				<h1>Payment successful!</h1>
 				<p>You've paid KES %d for <b>%s</b></p>
 				<p>Your check-in code: <b>%s</b></p>
-			`, payment.Amount/100, event.Title, booking.QRToken),
+			`, payment.Amount/100, event.Title, qrToken),
 		)
+
+		c.Redirect(http.StatusFound,
+			fmt.Sprintf("https://galleria-flame-ten.vercel.app/bookings?success=booked&event=%d",
+				*payment.EventID))
+		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Payment verified", "status": "success"})
+	if payment.Type == "subscription" {
+		var plan models.OrganizerPlan
+		db.DB.Where("user_id = ?", payment.UserID).
+			FirstOrCreate(&plan, models.OrganizerPlan{UserID: payment.UserID})
+
+		periodEnd := time.Now().AddDate(0, 1, 0)
+		if payment.SubscriptionPlan == "pro_yearly" {
+			periodEnd = time.Now().AddDate(1, 0, 0)
+		}
+
+		db.DB.Model(&plan).Updates(map[string]interface{}{
+			"plan":               "pro",
+			"current_period_end": periodEnd,
+		})
+
+		c.Redirect(http.StatusFound,
+			"https://galleria-flame-ten.vercel.app/dashboard/billing?success=subscribed")
+		return
+	}
+
+	c.Redirect(http.StatusFound,
+		"https://galleria-flame-ten.vercel.app/bookings?success=payment_done")
 }
 
-// InitiateSubscription — organizer subscribes to Pro plan
 func InitiateSubscription(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 
 	var input struct {
-		Plan string `json:"plan" binding:"required"` // "pro_monthly" or "pro_yearly"
+		Plan string `json:"plan" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -161,8 +175,8 @@ func InitiateSubscription(c *gin.Context) {
 	}
 
 	amounts := map[string]int64{
-		"pro_monthly": 199900, // KES 1999/month in kobo
-		"pro_yearly":  199900 * 10, // KES 19990/year
+		"pro_monthly": 199900,
+		"pro_yearly":  1999000,
 	}
 
 	amount, ok := amounts[input.Plan]
@@ -190,14 +204,8 @@ func InitiateSubscription(c *gin.Context) {
 		"https://galleria-b1yq.onrender.com", reference)
 
 	result, err := services.PaystackInitialize(
-		user.Email,
-		amount,
-		reference,
-		callbackURL,
-		map[string]interface{}{
-			"plan":    input.Plan,
-			"user_id": userID,
-		},
+		user.Email, amount, reference, callbackURL,
+		map[string]interface{}{"plan": input.Plan, "user_id": userID},
 	)
 	if err != nil || !result.Status {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Subscription initialization failed"})
@@ -211,13 +219,11 @@ func InitiateSubscription(c *gin.Context) {
 	})
 }
 
-// PaystackWebhook — Paystack sends events here
 func PaystackWebhook(c *gin.Context) {
 	secretKey := os.Getenv("PAYSTACK_SECRET_KEY")
 
 	body, _ := io.ReadAll(c.Request.Body)
 
-	// verify webhook signature
 	mac := hmac.New(sha512.New, []byte(secretKey))
 	mac.Write(body)
 	expected := hex.EncodeToString(mac.Sum(nil))
@@ -241,12 +247,12 @@ func PaystackWebhook(c *gin.Context) {
 		if db.DB.Where("reference = ?", reference).First(&payment).Error == nil {
 			db.DB.Model(&payment).Update("status", "success")
 
-			// upgrade organizer plan if subscription
 			if payment.Type == "subscription" {
 				var plan models.OrganizerPlan
-				db.DB.Where("user_id = ?", payment.UserID).FirstOrCreate(&plan, models.OrganizerPlan{UserID: payment.UserID})
+				db.DB.Where("user_id = ?", payment.UserID).
+					FirstOrCreate(&plan, models.OrganizerPlan{UserID: payment.UserID})
 
-				periodEnd := time.Now().AddDate(0, 1, 0) // 1 month
+				periodEnd := time.Now().AddDate(0, 1, 0)
 				if payment.SubscriptionPlan == "pro_yearly" {
 					periodEnd = time.Now().AddDate(1, 0, 0)
 				}
@@ -262,7 +268,6 @@ func PaystackWebhook(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"received": true})
 }
 
-// GetMyPayments — payment history
 func GetMyPayments(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 
@@ -273,7 +278,6 @@ func GetMyPayments(c *gin.Context) {
 	c.JSON(http.StatusOK, payments)
 }
 
-// GetOrganizerPlan — check current plan
 func GetOrganizerPlan(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 
@@ -284,7 +288,6 @@ func GetOrganizerPlan(c *gin.Context) {
 		return
 	}
 
-	// check if plan expired
 	if plan.Plan == "pro" && time.Now().After(plan.CurrentPeriodEnd) {
 		db.DB.Model(&plan).Update("plan", "free")
 		c.JSON(http.StatusOK, gin.H{"plan": "free"})

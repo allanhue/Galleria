@@ -1,4 +1,3 @@
-
 # Galleria — Full Project Documentation
 
 > Community-driven events platform for discovering, booking, and discussing events.
@@ -70,6 +69,117 @@ The app is distributed as:
 ```
 
 ---
+
+## 3. Repository Structure
+
+```
+Galleria/
+├── app/                          ← Next.js app directory (frontend)
+│   ├── auth/
+│   │   ├── login/page.tsx
+│   │   ├── register/page.tsx
+│   │   ├── forgot-password/page.tsx
+│   │   └── reset-password/page.tsx
+│   ├── events/
+│   │   ├── page.tsx
+│   │   └── [id]/
+│   │       ├── page.tsx
+│   │       └── client.tsx
+│   ├── community/page.tsx
+│   ├── bookings/page.tsx
+│   ├── saved/page.tsx
+│   ├── messages/
+│   │   ├── page.tsx
+│   │   └── [id]/page.tsx
+│   ├── profile/page.tsx
+│   ├── discover/page.tsx
+│   ├── settings/page.tsx
+│   ├── admin/page.tsx
+│   ├── dashboard/
+│   │   ├── page.tsx
+│   │   ├── create/page.tsx
+│   │   ├── edit/[id]/page.tsx
+│   │   ├── attendees/[id]/page.tsx
+│   │   ├── checkin/[id]/page.tsx
+│   │   ├── analytics/[id]/page.tsx
+│   │   └── billing/page.tsx
+│   ├── components/
+│   │   ├── navbar.tsx
+│   │   ├── notification_bell.tsx
+│   │   ├── spinner.tsx
+│   │   ├── follow_button.tsx
+│   │   ├── block_button.tsx
+│   │   └── report_modal.tsx
+│   ├── lib/
+│   │   ├── api.ts                ← all API calls
+│   │   ├── upload.ts             ← Cloudinary upload helper
+│   │   ├── push.ts               ← Web Push subscription
+│   │   └── theme.ts              ← dark mode helper
+│   ├── layout.tsx
+│   ├── page.tsx                  ← homepage
+│   ├── globals.css
+│   └── middleware.ts             ← route protection
+│
+├── galleria_back/                ← Go backend
+│   ├── main.go
+│   ├── db/
+│   │   ├── db.go
+│   │   └── seed.go
+│   ├── models/
+│   │   ├── user.go
+│   │   ├── user_settings.go
+│   │   ├── event.go
+│   │   ├── event_interaction.go
+│   │   ├── booking.go
+│   │   ├── community.go
+│   │   ├── notification.go
+│   │   ├── follow.go
+│   │   ├── message.go
+│   │   ├── block.go
+│   │   ├── report.go
+│   │   ├── review.go
+│   │   ├── feed_event.go
+│   │   ├── password_reset.go
+│   │   ├── payment.go
+│   │   ├── push_subscription.go
+│   │   └── waitlist.go
+│   ├── handlers/
+│   │   ├── auth.go
+│   │   ├── events.go
+│   │   ├── event_interactions.go
+│   │   ├── community.go
+│   │   ├── notifications.go
+│   │   ├── follow.go
+│   │   ├── messages.go
+│   │   ├── block.go
+│   │   ├── report.go
+│   │   ├── reviews.go
+│   │   ├── profile.go
+│   │   ├── discover.go
+│   │   ├── dashboard.go
+│   │   ├── analytics.go
+│   │   ├── settings.go
+│   │   ├── payments.go
+│   │   ├── checkin.go
+│   │   ├── waitlist.go
+│   │   ├── push.go
+│   │   └── utils.go
+│   ├── middleware/
+│   │   └── auth.go               ← JWT middleware
+│   └── services/
+│       ├── mail.go               ← Brevo email
+│       ├── rss.go                ← RSS feed fetcher
+│       ├── scheduler.go          ← background RSS refresh
+│       ├── paystack.go           ← Paystack HTTP client
+│       └── push.go               ← Web Push sender
+│
+├── android/                      ← Capacitor Android project
+├── public/
+│   ├── manifest.json             ← PWA manifest
+│   └── sw.js                     ← Service worker (push notifications)
+├── capacitor.config.ts
+├── next.config.ts
+└── tailwind.config.ts
 ```
 
 ---
@@ -504,17 +614,7 @@ In `android/app/build.gradle`:
 ```gradle
 versionCode 3        ← increment by 1 each APK release
 versionName "1.2"    ← semantic version shown to users
-```
 
-### Upload to APKPure
-
-1. Go to `developer.apkpure.com`
-2. Open Galleria listing → Manage Versions
-3. Drop `app-release.apk` into the upload zone
-4. Add "What's New" release notes
-5. Submit for review (usually approved within 24-48 hours)
-
----
 
 ## 13. Roadmap
 
