@@ -64,7 +64,7 @@ func InitiateTicketPayment(c *gin.Context) {
 	})
 
 	callbackURL := fmt.Sprintf("%s/payments/verify?ref=%s",
-		os.Getenv("APP_URL"), reference)
+		"https://galleria-b1yq.onrender.com", reference)
 
 	result, err := services.PaystackInitialize(
 		user.Email,
@@ -187,7 +187,7 @@ func InitiateSubscription(c *gin.Context) {
 	})
 
 	callbackURL := fmt.Sprintf("%s/payments/verify?ref=%s",
-		os.Getenv("APP_URL"), reference)
+		"https://galleria-b1yq.onrender.com", reference)
 
 	result, err := services.PaystackInitialize(
 		user.Email,
