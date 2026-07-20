@@ -19,23 +19,230 @@ function BookingsContent() {
   const [expanded, setExpanded] = useState<number | null>(null)
 
   const downloadTicket = (booking: Booking) => {
-    const content = `
-GALLERIA EVENT TICKET
-=====================
-Event:    ${booking.event?.title}
-Date:     ${booking.event?.date}
-Venue:    ${booking.event?.location}
-Status:   ${booking.checked_in ? 'Checked in ✓' : booking.status}
-Token:    ${booking.qr_token}
-=====================
-Show this at the door.
+    const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galleria Event Ticket</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    
+    .ticket {
+      width: 100%;
+      max-width: 500px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+    
+    .ticket-header {
+      background: linear-gradient(135deg, #3730A9 0%, #5B5AC7 100%);
+      color: white;
+      padding: 30px 20px;
+      text-align: center;
+    }
+    
+    .ticket-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 5px;
+      letter-spacing: 2px;
+    }
+    
+    .ticket-header p {
+      font-size: 12px;
+      opacity: 0.9;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .ticket-body {
+      padding: 30px 20px;
+    }
+    
+    .ticket-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #E4E1D8;
+      padding-bottom: 20px;
+    }
+    
+    .ticket-row:last-of-type {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    
+    .ticket-label {
+      font-size: 12px;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 500;
+    }
+    
+    .ticket-value {
+      font-size: 16px;
+      color: #14131F;
+      font-weight: 600;
+      text-align: right;
+      flex: 1;
+      margin-left: 15px;
+      word-break: break-word;
+    }
+    
+    .event-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #14131F;
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 10px;
+    }
+    
+    .status-badge.checked-in {
+      background: #D1FAE5;
+      color: #065F46;
+    }
+    
+    .status-badge.confirmed {
+      background: #EEEDFB;
+      color: #3730A9;
+    }
+    
+    .ticket-footer {
+      background: #FAF9F6;
+      padding: 20px;
+      text-align: center;
+      border-top: 2px dashed #E4E1D8;
+    }
+    
+    .ticket-footer p {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.6;
+    }
+    
+    .divider {
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #E4E1D8, transparent);
+      margin: 20px 0;
+    }
+    
+    @media (max-width: 600px) {
+      .ticket {
+        max-width: 100%;
+      }
+      
+      .ticket-header h1 {
+        font-size: 24px;
+      }
+      
+      .ticket-value {
+        font-size: 14px;
+      }
+    }
+    
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      
+      .ticket {
+        box-shadow: none;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="ticket">
+    <div class="ticket-header">
+      <h1>GALLERIA</h1>
+      <p>Event Ticket</p>
+    </div>
+    
+    <div class="ticket-body">
+      <div class="ticket-row">
+        <div>
+          <div class="ticket-label">Event</div>
+          <div class="ticket-value event-title">${booking.event?.title || 'Event'}</div>
+        </div>
+      </div>
+      
+      <div class="ticket-row">
+        <div>
+          <div class="ticket-label">Date & Location</div>
+          <div class="ticket-value">${booking.event?.date} · ${booking.event?.location}</div>
+        </div>
+      </div>
+      
+      <div class="ticket-row">
+        <div>
+          <div class="ticket-label">Booking Status</div>
+          <div>
+            <div class="ticket-value">${booking.status}</div>
+            <span class="status-badge ${booking.checked_in ? 'checked-in' : 'confirmed'}">
+              ${booking.checked_in ? '✓ Checked In' : 'Confirmed'}
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="divider"></div>
+      
+      <div class="ticket-row">
+        <div>
+          <div class="ticket-label">Ticket Token</div>
+          <div class="ticket-value" style="font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; letter-spacing: 2px;">
+            ${booking.qr_token.slice(0, 8).toUpperCase()}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="ticket-footer">
+      <p><strong>✓ Show this ticket at the door</strong></p>
+      <p style="margin-top: 8px;">Save this file for your records</p>
+    </div>
+  </div>
+</body>
+</html>
     `.trim()
 
-    const blob = new Blob([content], { type: 'text/plain' })
+    const blob = new Blob([htmlContent], { type: 'text/html' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `galleria-ticket-${booking.id}.txt`
+    a.download = `galleria-ticket-${booking.id}.html`
     a.click()
     URL.revokeObjectURL(url)
   }
