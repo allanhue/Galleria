@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 import { bookings as bookingApi, events, Booking } from '@/app/lib/api'
 import Cookies from 'js-cookie'
 import Link from 'next/link'
@@ -8,8 +9,11 @@ import Spinner from '@/app/components/spinner'
 import { QRCodeSVG } from 'qrcode.react'
 import { ChevronDown, ChevronUp, CheckCircle2, Download, X } from 'lucide-react'
 
-export default function BookingsPage() {
+function BookingsContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const success = searchParams.get('success')
+  const error = searchParams.get('error')
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState<number | null>(null)
@@ -64,6 +68,16 @@ Show this at the door.
 
   return (
     <main className="max-w-2xl flex flex-col gap-4">
+      {success === 'booked' && (
+        <div className="bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3">
+          Payment confirmed. Your booking is now active.
+        </div>
+      )}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3">
+          Payment issue: {error.replace(/_/g, ' ')}. Contact support if charged.
+        </div>
+      )}
       {bookings.length === 0 ? (
         <div className="border border-[#E4E1D8] bg-white p-8 text-center text-gray-400 text-sm">
           No bookings yet.{' '}
@@ -159,5 +173,13 @@ Show this at the door.
         ))
       )}
     </main>
+  )
+}
+
+export default function BookingsPage() {
+  return (
+    <Suspense>
+      <BookingsContent />
+    </Suspense>
   )
 }
