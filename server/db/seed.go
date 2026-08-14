@@ -1,6 +1,6 @@
 package db
 
-import "galleria_back/models"
+import "server/models"
 
 func SeedEvents() {
 	events := []models.Event{

@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"fmt"
-	"galleria_back/db"
-	"galleria_back/models"
-	"galleria_back/services"
+	"server/db"
+	"server/models"
+	"server/services"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

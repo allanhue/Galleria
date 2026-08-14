@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"galleria_back/db"
-	"galleria_back/models"
+	"server/db"
+	"server/models"
 	"net/http"
-    "galleria_back/services"
+    "server/services"
 
 	"github.com/gin-gonic/gin"
 )

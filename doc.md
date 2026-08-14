@@ -569,7 +569,7 @@ Upload `app-release.apk` to APKPure → Manage Versions → Upload.
 
 ### Backend — Render
 
-- Repo: same monorepo, root directory set to `galleria_back`
+- Repo: same monorepo, root directory set to `servr`
 - Build command: `go build -o app .`
 - Start command: `./app`
 - Auto-deploys on push to `main`

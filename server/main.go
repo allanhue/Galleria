@@ -1,11 +1,11 @@
 package main
 
 import (
-	"galleria_back/db"
-	"galleria_back/handlers"
-	"galleria_back/middleware"
-	"galleria_back/models"
-	"galleria_back/services"
+	"server/db"
+	"server/handlers"
+	"server/middleware"
+	"server/models"
+	"server/services"
 	"os"
 
 	"github.com/gin-contrib/cors"

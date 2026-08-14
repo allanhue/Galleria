@@ -2,8 +2,8 @@ package services
 
 import (
 	"fmt"
-	"galleria_back/db"
-	"galleria_back/models"
+	"server/db"
+	"server/models"
 	"time"
 )
 
