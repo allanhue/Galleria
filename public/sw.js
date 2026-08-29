@@ -1,10 +1,11 @@
 self.addEventListener('push', (event) => {
   const data = event.data?.json() || {}
+  const fallbackIcon = '/favicon.ico'
   event.waitUntil(
     self.registration.showNotification(data.title || 'Galleria', {
       body: data.body || 'You have a new notification',
-      icon: '/icon-192.png',
-      badge: '/icon-192.png',
+      icon: fallbackIcon,
+      badge: fallbackIcon,
       data: { url: data.url || '/' },
     })
   )

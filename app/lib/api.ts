@@ -41,8 +41,8 @@ export interface Event {
   organizer_id: number
   source: string
   photo_urls?: string[]
-  is_free: boolean
-  price: number
+  is_free?: boolean
+  price?: number
 }
 
 export interface RSSItem {
@@ -51,7 +51,6 @@ export interface RSSItem {
   link: string
   pub_date: string
 }
-
 
 export interface EventsResponse {
   events: Event[]
@@ -66,6 +65,7 @@ export interface CommunityPost {
   user_id: number
   created_at: string
 }
+
 export interface Booking {
   id: number
   user_id: number
@@ -96,6 +96,7 @@ export interface CommunityPost {
   user?: User
   comments?: PostComment[]
 }
+
 export interface Notification {
   id: number
   user_id: number
@@ -127,6 +128,7 @@ export interface ProfileData {
     bookings: number
   }
 }
+
 export interface Conversation {
   id: number
   user_a_id: number
@@ -147,6 +149,7 @@ export interface Message {
   created_at: string
   sender: User
 }
+
 export interface Notification {
   id: number
   user_id: number
@@ -158,12 +161,6 @@ export interface Notification {
   read: boolean
   created_at: string
   actor: User
-}
-
-export interface EventDetail extends Event {
-  spots_taken: number
-  spots_remaining: number
-  sold_out: boolean
 }
 
 

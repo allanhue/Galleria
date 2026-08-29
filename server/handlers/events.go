@@ -2,11 +2,11 @@ package handlers
 
 import (
 	"fmt"
+	"math"
+	"net/http"
 	"server/db"
 	"server/models"
 	"server/services"
-	"math"
-	"net/http"
 	"strconv"
 	"time"
 
@@ -65,6 +65,8 @@ func GetEvent(c *gin.Context) {
 		"date": event.Date, "location": event.Location, "city": event.City,
 		"country": event.Country, "category": event.Category, "capacity": event.Capacity,
 		"organizer_id": event.OrganizerID, "source": event.Source, "photo_urls": event.PhotoURLs,
+		"is_free":         event.IsFree,
+		"price":           event.Price,
 		"created_at":      event.CreatedAt,
 		"spots_taken":     bookedCount,
 		"spots_remaining": int64(event.Capacity) - bookedCount,

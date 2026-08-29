@@ -398,9 +398,9 @@ const handleWaitlist = async () => {
               >
                 {booking
                   ? 'Processing...'
-                  : event.is_free
+                  : event.is_free ?? true
                     ? 'Book my spot'
-                    : `Pay KES ${event.price.toLocaleString()}`
+                    : `Pay KES ${(event.price ?? 0).toLocaleString()}`
                 }
               </button>
             )}
