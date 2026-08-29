@@ -41,6 +41,8 @@ function StarRating({ value, onChange, readonly = false }: {
 export default function EventDetailClient() {
   const { id } = useParams()
   const router = useRouter()
+  const routeId = Array.isArray(id) ? id[0] : id
+  const eventId = Number(routeId)
   const [event, setEvent] = useState<EventDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [booked, setBooked] = useState(false)
@@ -57,48 +59,59 @@ export default function EventDetailClient() {
   const [joiningWaitlist, setJoiningWaitlist] = useState(false)
   const [copied, setCopied] = useState(false)
   const [hasBooked, setHasBooked] = useState(false)
-const [likes, setLikes] = useState(0)
-const [dislikes, setDislikes] = useState(0)
-const [myDirection, setMyDirection] = useState('')
-const [saved, setSaved] = useState(false)
-const [currentUser, setCurrentUser] = useState<any>(null)
+  const [likes, setLikes] = useState(0)
+  const [dislikes, setDislikes] = useState(0)
+  const [myDirection, setMyDirection] = useState('')
+  const [saved, setSaved] = useState(false)
+  const [currentUser, setCurrentUser] = useState<any>(null)
 
+  useEffect(() => {
+    if (!routeId || Number.isNaN(eventId)) {
+      setError('Invalid event URL.')
+      setLoading(false)
+      return
+    }
 
-useEffect(() => {
-  events.getOne(Number(id))
-    .then((res) => setEvent(res.data))
-    .catch(console.error)
-    .finally(() => setLoading(false))
+    setLoading(true)
+    setError('')
 
-  const token = Cookies.get('token')
-  if (token) {
-    waitlist.getStatus(Number(id))
-      .then((res) => setWaitlistStatus(res.data))
-      .catch(console.error)
+    events.getOne(eventId)
+      .then((res) => setEvent(res.data))
+      .catch((err) => {
+        console.error(err)
+        setError('Event not found.')
+      })
+      .finally(() => setLoading(false))
 
-    events.getMyBookings()
-      .then((res) => {
-        const hasThisBooking = res.data.some(
-          (b: any) => b.event_id === Number(id) && b.status === 'confirmed'
-        )
-        setHasBooked(hasThisBooking)
+    const token = Cookies.get('token')
+    if (token) {
+      waitlist.getStatus(eventId)
+        .then((res) => setWaitlistStatus(res.data))
+        .catch(console.error)
+
+      events.getMyBookings()
+        .then((res) => {
+          const hasThisBooking = res.data.some(
+            (b: any) => b.event_id === eventId && b.status === 'confirmed'
+          )
+          setHasBooked(hasThisBooking)
+        })
+        .catch(console.error)
+    }
+
+    const stored = Cookies.get('user')
+    if (stored) {
+      try { setCurrentUser(JSON.parse(stored)) } catch {}
+    }
+
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/events/${eventId}/reviews`)
+      .then((r) => r.json())
+      .then((data) => {
+        setReviews(data.reviews || [])
+        setAvgRating(data.avg_rating || 0)
       })
       .catch(console.error)
-  }
-
-  const stored = Cookies.get('user')
-  if (stored) {
-    try { setCurrentUser(JSON.parse(stored)) } catch {}
-  }
-
-  fetch(`${process.env.NEXT_PUBLIC_API_URL}/events/${id}/reviews`)
-    .then((r) => r.json())
-    .then((data) => {
-      setReviews(data.reviews || [])
-      setAvgRating(data.avg_rating || 0)
-    })
-    .catch(console.error)
-}, [id])
+  }, [routeId, eventId])
 
 
 
@@ -108,8 +121,8 @@ const handleLike = async (direction: 'like' | 'dislike') => {
   const token = Cookies.get('token')
   if (!token) { router.push('/auth/login'); return }
   try {
-    const res = await events.likeEvent(Number(id), direction)
-    const updated = await events.getLikes(Number(id))
+    const res = await events.likeEvent(eventId, direction)
+    const updated = await events.getLikes(eventId)
     setLikes(updated.data.likes)
     setDislikes(updated.data.dislikes)
     setMyDirection(res.data.action === 'removed' ? '' : direction)
@@ -122,7 +135,7 @@ const handleSaveEvent = async () => {
   const token = Cookies.get('token')
   if (!token) { router.push('/auth/login'); return }
   try {
-    const res = await events.saveEvent(Number(id))
+    const res = await events.saveEvent(eventId)
     setSaved(res.data.saved)
   } catch (err) {
     console.error(err)
@@ -135,11 +148,11 @@ const handleWaitlist = async () => {
   setJoiningWaitlist(true)
   try {
     if (waitlistStatus?.on_waitlist) {
-      await waitlist.leave(Number(id))
+      await waitlist.leave(eventId)
       setWaitlistStatus({ on_waitlist: false, position: 0 })
     } else {
-      await waitlist.join(Number(id))
-      const status = await waitlist.getStatus(Number(id))
+      await waitlist.join(eventId)
+      const status = await waitlist.getStatus(eventId)
       setWaitlistStatus(status.data)
     }
   } catch (err: any) {
@@ -159,7 +172,7 @@ const handleWaitlist = async () => {
     if (event && !event.is_free && (event.price ?? 0) > 0) {
       setBooking(true)
       try {
-        const res = await payments.initiateTicket(Number(id))
+        const res = await payments.initiateTicket(eventId)
         window.location.href = res.data.authorization_url
       } catch (err: any) {
         setError(err.response?.data?.error || 'Payment initiation failed')
@@ -171,7 +184,7 @@ const handleWaitlist = async () => {
     setBooking(true)
     setError('')
     try {
-      await events.book(Number(id))
+      await events.book(eventId)
       setBooked(true)
     } catch (err: any) {
       setError(err.response?.data?.error || 'Booking failed')
@@ -209,7 +222,7 @@ const handleWaitlist = async () => {
     setReviewError('')
     try {
       const token = Cookies.get('token')
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/events/${id}/review`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/events/${eventId}/review`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
