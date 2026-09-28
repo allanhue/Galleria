@@ -204,9 +204,9 @@ useEffect(() => {
     <main className="max-w-2xl flex flex-col gap-8">
 
       <div>
-        <p className="text-sm text-gray-500 mt-1">
+        {/* <p className="text-sm text-gray-500 mt-1">
           Suggest ideas, vote, comment and shape what happens next
-        </p>
+        </p> */}
       </div>
 
       {/* Post form */}

@@ -210,7 +210,7 @@ function BookingsContent() {
           <div class="ticket-label">Booking Status</div>
           <div>
             <div class="ticket-value">${booking.status}</div>
-            <span class="status-badge ${booking.checked_in ? 'checked-in' : 'confirmed'}">
+            <span class="status-badge ${booking.checked_in ? 'checked-in' : ''}">
               ${booking.checked_in ? '✓ Checked In' : 'Confirmed'}
             </span>
           </div>
@@ -220,8 +220,8 @@ function BookingsContent() {
       <div class="divider"></div>
       
       <div class="ticket-row">
-        <div>
-          <div class="ticket-label">Ticket Token</div>
+        <div> 
+          <div class="ticket-label">Ticket No:</div>
           <div class="ticket-value" style="font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; letter-spacing: 2px;">
             ${booking.qr_token.slice(0, 8).toUpperCase()}
           </div>
@@ -230,7 +230,6 @@ function BookingsContent() {
     </div>
     
     <div class="ticket-footer">
-      <p><strong>✓ Show this ticket at the door</strong></p>
       <p style="margin-top: 8px;">Save this file for your records</p>
     </div>
   </div>

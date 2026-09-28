@@ -79,7 +79,7 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop center links — hidden on mobile */}
-        <div className="hidden md:flex items-center gap-1">
+  <div className="hidden md:flex items-center gap-1">
           {visibleLinks.map((link) => {
             const Icon = link.icon
             const active = pathname === link.href
@@ -87,7 +87,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`flex items-center gap-1.5 text-sm px-3 py-1.5 border border-transparent transition-colors ${
+                className={`flex items-center gap-1.5 text-sm px-3 py-1.5 border border-transparent transition-colors rounded-[12px] ${
                   active
                     ? 'border-[#D9D6F5] bg-[#EEEDFB] text-[#3730A9] font-medium'
                     : 'text-gray-500 hover:text-[#14131F] hover:border-[#E4E1D8] hover:bg-white'
@@ -99,6 +99,7 @@ export default function Navbar() {
             )
           })}
         </div>
+
 
         {/* Right actions */}
         <div className="flex items-center gap-2">
@@ -147,7 +148,7 @@ export default function Navbar() {
       </nav>
 
       {/* ── Mobile bottom nav ── */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-20 h-16 bg-[#FAF9F6]/95 backdrop-blur border-t border-[#E4E1D8] flex items-center px-2 pb-1">
+<div className="md:hidden fixed bottom-0 left-0 right-0 z-20 h-16 bg-[#FAF9F6]/95 backdrop-blur border-t border-[#E4E1D8] flex items-center px-2 pb-1">
         {visibleLinks.map((link) => {
           const Icon = link.icon
           const active = pathname === link.href
@@ -155,7 +156,7 @@ export default function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-1 transition-colors ${
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-1 transition-colors rounded-[12px] ${
                 active ? 'text-[#3730A9]' : 'text-gray-400 hover:text-[#14131F]'
               }`}
             >
@@ -165,6 +166,7 @@ export default function Navbar() {
           )
         })}
       </div>
+
 
       {/* ── Body padding for fixed bars ── */}
       <style jsx global>{`
