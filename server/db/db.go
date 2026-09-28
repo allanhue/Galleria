@@ -10,7 +10,7 @@ import (
 )
 
 var DB *gorm.DB
-
+// databse  connection
 func Connect() {
     dsn := os.Getenv("DATABASE_URL")
     if dsn == "" {
