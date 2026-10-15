@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
-  appId: 'com.galleria.app',
+  appId: 'com.galleria.events',
   appName: 'Galleria',
   webDir: 'out',
   server: {

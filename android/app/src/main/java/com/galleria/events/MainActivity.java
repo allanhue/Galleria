@@ -1,4 +1,4 @@
-package com.galleria.app;
+package com.galleria.events;
 
 import com.getcapacitor.BridgeActivity;
 

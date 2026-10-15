@@ -611,9 +611,49 @@ Upload `app-release.apk` to APKPure → Manage Versions → Upload.
 ### Version tracking
 
 In `android/app/build.gradle`:
+
 ```gradle
-versionCode 3        ← increment by 1 each APK release
-versionName "1.2"    ← semantic version shown to users
+versionCode 3
+versionName "1.2"
+```
+
+Increment `versionCode` for every APK release and update `versionName` to the release version. The current release is `3` / `1.2`.
+
+### Build and upload the signed APK (Windows PowerShell)
+
+The Android Studio Java runtime is used for Gradle. Set `JAVA_HOME` in the PowerShell window used to build; this does not permanently change Windows settings:
+
+```powershell
+Set-Location 'C:\Galleria'
+$env:JAVA_HOME = 'C:\Program Files\Android\Android Studio\jbr'
+$env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
+$env:ANDROID_HOME = Join-Path $env:LOCALAPPDATA 'Android\Sdk'
+$env:ANDROID_SDK_ROOT = $env:ANDROID_HOME
+java -version
+Write-Output "Android SDK: $env:ANDROID_HOME"
+
+npx cap sync android
+if ($LASTEXITCODE -ne 0) { throw 'Capacitor sync failed.' }
+
+Push-Location 'C:\Galleria\android'
+try {
+    .\gradlew.bat assembleRelease
+    if ($LASTEXITCODE -ne 0) { throw 'Android release build failed.' }
+}
+finally {
+    Pop-Location
+}
+
+$apk = 'C:\Galleria\android\app\build\outputs\apk\release\app-release.apk'
+if (-not (Test-Path -LiteralPath $apk)) { throw "Release APK not found: $apk" }
+$desktop = [Environment]::GetFolderPath('Desktop')
+if (-not (Test-Path -LiteralPath $desktop)) { throw "Desktop folder not found: $desktop" }
+$uploadFile = Join-Path $desktop 'Galleria-1.2.apk'
+Copy-Item -LiteralPath $apk -Destination $uploadFile -Force
+Get-Item -LiteralPath $uploadFile | Select-Object FullName, Length, LastWriteTime
+```
+
+Upload the resulting `Galleria-1.2.apk` from the Desktop to APKPure. The release build uses the existing signing configuration in `android/keystore.properties`; retain the same signing key for updates to the existing app.
 
 
 ## 13. Roadmap
