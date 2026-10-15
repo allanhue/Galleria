@@ -11,6 +11,9 @@ const categories = [
   'Sports', 'Networking', 'Tech', 'Culture', 'Outdoors'
 ]
 
+const saleTimeToISO = (value: string) =>
+  value ? new Date(value).toISOString() : null
+
 export default function CreateEventPage() {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -25,6 +28,12 @@ export default function CreateEventPage() {
     capacity: 100,
     is_free: true,
     price: 0,
+    vip_price: 0,
+    vip_capacity: 0,
+    flash_sale_price: 0,
+    flash_sale_capacity: 0,
+    flash_sale_starts_at: '',
+    flash_sale_ends_at: '',
   })
   const [photos, setPhotos] = useState<string[]>([])
   const [uploading, setUploading] = useState(false)
@@ -70,7 +79,12 @@ export default function CreateEventPage() {
     setLoading(true)
     setError('')
     try {
-      const res = await events.create({ ...form, photo_urls: photos })
+      const res = await events.create({
+        ...form,
+        flash_sale_starts_at: saleTimeToISO(form.flash_sale_starts_at),
+        flash_sale_ends_at: saleTimeToISO(form.flash_sale_ends_at),
+        photo_urls: photos,
+      })
       router.push(`/events/${res.data.id}`)
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to create event')
@@ -237,6 +251,91 @@ export default function CreateEventPage() {
             </div>
           )}
         </div>
+
+        <section className="flex flex-col gap-4 border border-[#E4E1D8] p-4">
+          <div>
+            <h2 className="text-sm font-medium">VIP tickets <span className="text-gray-400 font-normal">(optional)</span></h2>
+            <p className="text-xs text-gray-500 mt-1">Set a separate price and a limited number of VIP tickets.</p>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium">VIP price (KES)</label>
+              <input
+                type="number"
+                min={1}
+                value={form.vip_price || ''}
+                onChange={(e) => setForm({ ...form, vip_price: Number(e.target.value) })}
+                className="border border-[#E4E1D8] px-4 py-2.5 text-sm outline-none focus:border-[#3730A9]"
+                required={form.vip_capacity > 0}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium">VIP quantity</label>
+              <input
+                type="number"
+                min={0}
+                max={form.capacity}
+                value={form.vip_capacity}
+                onChange={(e) => setForm({ ...form, vip_capacity: Number(e.target.value) })}
+                className="border border-[#E4E1D8] px-4 py-2.5 text-sm outline-none focus:border-[#3730A9]"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="flex flex-col gap-4 border border-[#E4E1D8] p-4">
+          <div>
+            <h2 className="text-sm font-medium">Flash sale <span className="text-gray-400 font-normal">(optional)</span></h2>
+            <p className="text-xs text-gray-500 mt-1">Offer a lower-priced, limited ticket tier during a scheduled window.</p>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium">Flash-sale price (KES)</label>
+              <input
+                type="number"
+                min={1}
+                value={form.flash_sale_price || ''}
+                onChange={(e) => setForm({ ...form, flash_sale_price: Number(e.target.value) })}
+                className="border border-[#E4E1D8] px-4 py-2.5 text-sm outline-none focus:border-[#3730A9]"
+                required={form.flash_sale_capacity > 0}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium">Flash-sale quantity</label>
+              <input
+                type="number"
+                min={0}
+                max={form.capacity}
+                value={form.flash_sale_capacity}
+                onChange={(e) => setForm({ ...form, flash_sale_capacity: Number(e.target.value) })}
+                className="border border-[#E4E1D8] px-4 py-2.5 text-sm outline-none focus:border-[#3730A9]"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium">Starts</label>
+              <input
+                type="datetime-local"
+                value={form.flash_sale_starts_at}
+                onChange={(e) => setForm({ ...form, flash_sale_starts_at: e.target.value })}
+                className="border border-[#E4E1D8] px-4 py-2.5 text-sm outline-none focus:border-[#3730A9]"
+                required={form.flash_sale_capacity > 0}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium">Ends</label>
+              <input
+                type="datetime-local"
+                value={form.flash_sale_ends_at}
+                onChange={(e) => setForm({ ...form, flash_sale_ends_at: e.target.value })}
+                className="border border-[#E4E1D8] px-4 py-2.5 text-sm outline-none focus:border-[#3730A9]"
+                required={form.flash_sale_capacity > 0}
+              />
+            </div>
+          </div>
+          {form.flash_sale_capacity > 0 && form.is_free && (
+            <p className="text-xs text-red-600">Flash sales require a paid general ticket price.</p>
+          )}
+        </section>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1">

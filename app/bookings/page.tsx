@@ -9,6 +9,17 @@ import Spinner from '@/app/components/spinner'
 import { QRCodeSVG } from 'qrcode.react'
 import { ChevronDown, ChevronUp, CheckCircle2, Download, X } from 'lucide-react'
 
+const ticketTypeLabel = (ticketType?: string) => {
+  switch (ticketType) {
+    case 'vip':
+      return 'VIP'
+    case 'flash_sale':
+      return 'Flash sale'
+    default:
+      return 'General admission'
+  }
+}
+
 function BookingsContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -207,6 +218,13 @@ function BookingsContent() {
       
       <div class="ticket-row">
         <div>
+          <div class="ticket-label">Ticket Type</div>
+          <div class="ticket-value">${ticketTypeLabel(booking.ticket_type)}</div>
+        </div>
+      </div>
+
+      <div class="ticket-row">
+        <div>
           <div class="ticket-label">Booking Status</div>
           <div>
             <div class="ticket-value">${booking.status}</div>
@@ -302,6 +320,10 @@ function BookingsContent() {
                 </p>
                 <p className="text-xs text-gray-400">
                   {booking.event?.date} · {booking.event?.location}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {ticketTypeLabel(booking.ticket_type)}
+                  {booking.notify_event_updates ? ' · Event update emails on' : ''}
                 </p>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className={`text-xs px-2 py-0.5 ${

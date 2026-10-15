@@ -43,6 +43,15 @@ export interface Event {
   photo_urls?: string[]
   is_free?: boolean
   price?: number
+  vip_price?: number
+  vip_capacity?: number
+  vip_spots_remaining?: number
+  flash_sale_price?: number
+  flash_sale_capacity?: number
+  flash_sale_spots_remaining?: number
+  flash_sale_starts_at?: string | null
+  flash_sale_ends_at?: string | null
+  flash_sale_active?: boolean
 }
 
 export interface RSSItem {
@@ -71,6 +80,8 @@ export interface Booking {
   user_id: number
   event_id: number
   status: string
+  ticket_type: string
+  notify_event_updates: boolean
   created_at: string
   event: Event
 }
@@ -215,6 +226,8 @@ export interface Booking {
   user_id: number
   event_id: number
   status: string
+  ticket_type: string
+  notify_event_updates: boolean
   qr_token: string
   checked_in: boolean
   created_at: string
@@ -254,6 +267,8 @@ export interface Payment {
   amount: number
   currency: string
   status: string
+  ticket_type: string
+  notify_event_updates: boolean
   reference: string
   subscription_plan?: string
   created_at: string
@@ -336,16 +351,25 @@ create: (data: {
   location: string; category: string; capacity: number
   city?: string; country?: string; photo_urls?: string[]
   is_free?: boolean; price?: number
+  vip_price?: number; vip_capacity?: number
+  flash_sale_price?: number; flash_sale_capacity?: number
+  flash_sale_starts_at?: string | null; flash_sale_ends_at?: string | null
 }) => api.post<Event>('/events', data),
 
   update: (id: number, data: Partial<Event>) =>
-    api.put<Event>(`/events/${id}`, data),
+    api.put<{ event: Event; notifications_sent: number; notification_failures: number }>(`/events/${id}`, data),
 
   delete: (id: number) =>
     api.delete(`/events/${id}`),
 
-  book: (id: number) =>
-    api.post(`/events/${id}/book`),
+  book: (
+    id: number,
+    data: { ticket_type: string; notify_event_updates: boolean } = {
+      ticket_type: 'general',
+      notify_event_updates: false,
+    },
+  ) =>
+    api.post(`/events/${id}/book`, data),
 
   getMyBookings: () =>
     api.get<Booking[]>('/bookings/my'),
@@ -478,9 +502,9 @@ export const settings = {
 
 
 export const payments = {
-  initiateTicket: (eventId: number) =>
+  initiateTicket: (eventId: number, data: { ticket_type: string; notify_event_updates: boolean }) =>
     api.post<{ authorization_url: string; reference: string; amount: number }>(
-      `/events/${eventId}/pay`
+      `/events/${eventId}/pay`, data
     ),
 
   subscribe: (plan: string) =>

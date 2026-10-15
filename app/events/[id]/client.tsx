@@ -47,6 +47,8 @@ export default function EventDetailClient() {
   const [loading, setLoading] = useState(true)
   const [booked, setBooked] = useState(false)
   const [booking, setBooking] = useState(false)
+  const [ticketType, setTicketType] = useState<'general' | 'vip' | 'flash_sale'>('general')
+  const [notifyEventUpdates, setNotifyEventUpdates] = useState(false)
   const [error, setError] = useState('')
   const [reviews, setReviews] = useState<Review[]>([])
   const [avgRating, setAvgRating] = useState(0)
@@ -162,6 +164,13 @@ const handleWaitlist = async () => {
   }
 }
 
+const getSelectedTicketPrice = () => {
+  if (!event) return 0
+  if (ticketType === 'vip') return event.vip_price ?? 0
+  if (ticketType === 'flash_sale') return event.flash_sale_price ?? 0
+  return (event.is_free ?? true) ? 0 : event.price ?? 0
+}
+
   const handleBook = async () => {
     const token = Cookies.get('token')
     if (!token) {
@@ -169,10 +178,13 @@ const handleWaitlist = async () => {
       return
     }
 
-    if (event && !event.is_free && (event.price ?? 0) > 0) {
+    if (getSelectedTicketPrice() > 0) {
       setBooking(true)
       try {
-        const res = await payments.initiateTicket(eventId)
+        const res = await payments.initiateTicket(eventId, {
+          ticket_type: ticketType,
+          notify_event_updates: notifyEventUpdates,
+        })
         window.location.href = res.data.authorization_url
       } catch (err: any) {
         setError(err.response?.data?.error || 'Payment initiation failed')
@@ -184,7 +196,10 @@ const handleWaitlist = async () => {
     setBooking(true)
     setError('')
     try {
-      await events.book(eventId)
+      await events.book(eventId, {
+        ticket_type: ticketType,
+        notify_event_updates: notifyEventUpdates,
+      })
       setBooked(true)
     } catch (err: any) {
       setError(err.response?.data?.error || 'Booking failed')
@@ -361,6 +376,79 @@ const handleWaitlist = async () => {
           )}
 
           {/* Booking + Share row */}
+          {!booked && !event.sold_out && (
+            <div className="flex flex-col gap-4 pt-2">
+              <fieldset>
+                <legend className="text-sm font-medium mb-2">Choose a ticket</legend>
+                <div className="grid gap-2">
+                  <label className={`flex cursor-pointer items-center justify-between gap-4 border p-3 ${ticketType === 'general' ? 'border-[#3730A9] bg-[#EEEDFB]' : 'border-[#E4E1D8]'}`}>
+                    <span className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="ticket_type"
+                        value="general"
+                        checked={ticketType === 'general'}
+                        onChange={() => setTicketType('general')}
+                      />
+                      <span>
+                        <span className="block text-sm font-medium">General admission</span>
+                        <span className="block text-xs text-gray-500">{event.spots_remaining} remaining</span>
+                      </span>
+                    </span>
+                    <span className="text-sm font-medium">
+                      {(event.is_free ?? true) ? 'Free' : `KES ${(event.price ?? 0).toLocaleString()}`}
+                    </span>
+                  </label>
+                  {(event.vip_capacity ?? 0) > 0 && (event.vip_spots_remaining ?? 0) > 0 && (
+                    <label className={`flex cursor-pointer items-center justify-between gap-4 border p-3 ${ticketType === 'vip' ? 'border-[#3730A9] bg-[#EEEDFB]' : 'border-[#E4E1D8]'}`}>
+                      <span className="flex items-center gap-3">
+                        <input
+                          type="radio"
+                          name="ticket_type"
+                          value="vip"
+                          checked={ticketType === 'vip'}
+                          onChange={() => setTicketType('vip')}
+                        />
+                        <span>
+                          <span className="block text-sm font-medium">VIP</span>
+                          <span className="block text-xs text-gray-500">{event.vip_spots_remaining} remaining</span>
+                        </span>
+                      </span>
+                      <span className="text-sm font-medium">KES {(event.vip_price ?? 0).toLocaleString()}</span>
+                    </label>
+                  )}
+                  {event.flash_sale_active && (event.flash_sale_spots_remaining ?? 0) > 0 && (
+                    <label className={`flex cursor-pointer items-center justify-between gap-4 border p-3 ${ticketType === 'flash_sale' ? 'border-[#3730A9] bg-[#EEEDFB]' : 'border-[#E4E1D8]'}`}>
+                      <span className="flex items-center gap-3">
+                        <input
+                          type="radio"
+                          name="ticket_type"
+                          value="flash_sale"
+                          checked={ticketType === 'flash_sale'}
+                          onChange={() => setTicketType('flash_sale')}
+                        />
+                        <span>
+                          <span className="block text-sm font-medium">Flash sale</span>
+                          <span className="block text-xs text-gray-500">{event.flash_sale_spots_remaining} discounted tickets left</span>
+                        </span>
+                      </span>
+                      <span className="text-sm font-medium">KES {(event.flash_sale_price ?? 0).toLocaleString()}</span>
+                    </label>
+                  )}
+                </div>
+              </fieldset>
+              <label className="flex items-start gap-2 text-sm text-gray-600">
+                <input
+                  type="checkbox"
+                  checked={notifyEventUpdates}
+                  onChange={(e) => setNotifyEventUpdates(e.target.checked)}
+                  className="mt-0.5 accent-[#3730A9]"
+                />
+                <span>Email me when the organizer updates this event.</span>
+              </label>
+            </div>
+          )}
+
           <div className="flex items-center gap-3 flex-wrap pt-2">
             {booked ? (
               <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 px-5 py-4 text-sm font-medium">
@@ -398,9 +486,9 @@ const handleWaitlist = async () => {
               >
                 {booking
                   ? 'Processing...'
-                  : event.is_free ?? true
+                  : getSelectedTicketPrice() === 0
                     ? 'Book my spot'
-                    : `Pay KES ${(event.price ?? 0).toLocaleString()}`
+                    : `Pay KES ${getSelectedTicketPrice().toLocaleString()}`
                 }
               </button>
             )}

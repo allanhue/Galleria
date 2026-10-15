@@ -6,16 +6,19 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"server/db"
-	"server/models"
-	"server/services"
+	"html"
 	"io"
+	"log"
 	"math/rand"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
+
+	"server/db"
+	"server/models"
+	"server/services"
 )
 
 func generateReference() string {
@@ -32,13 +35,52 @@ func InitiateTicketPayment(c *gin.Context) {
 		return
 	}
 
-	if event.IsFree {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "This event is free, use the regular booking endpoint"})
+	var input struct {
+		TicketType         string `json:"ticket_type"`
+		NotifyEventUpdates bool   `json:"notify_event_updates"`
+	}
+	if c.Request.ContentLength != 0 {
+		if err := c.ShouldBindJSON(&input); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	}
+	ticketType, err := normalizeTicketType(input.TicketType)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	amount, err := priceForTicket(event, ticketType, time.Now())
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if amount <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "This ticket is free, use the regular booking endpoint"})
+		return
+	}
+
+	var bookedCount int64
+	db.DB.Model(&models.Booking{}).
+		Where("event_id = ? AND status = ?", event.ID, "confirmed").Count(&bookedCount)
+	if bookedCount >= int64(event.Capacity) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Event is sold out"})
+		return
+	}
+	if ticketType == vipTicket && ticketCount(event.ID, vipTicket) >= int64(event.VIPCapacity) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "VIP tickets are sold out"})
+		return
+	}
+	if ticketType == flashSaleTicket && ticketCount(event.ID, flashSaleTicket) >= int64(event.FlashSaleCapacity) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Flash sale tickets are sold out"})
 		return
 	}
 
 	var user models.User
-	db.DB.First(&user, userID)
+	if err := db.DB.First(&user, userID).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not load attendee account"})
+		return
+	}
 
 	var existing models.Booking
 	if db.DB.Where("user_id = ? AND event_id = ?", userID, eventID).First(&existing).Error == nil {
@@ -47,18 +89,24 @@ func InitiateTicketPayment(c *gin.Context) {
 	}
 
 	reference := generateReference()
-	amountKobo := event.Price * 100
+	amountKobo := amount * 100
 
 	eid := event.ID
-	db.DB.Create(&models.Payment{
+	payment := models.Payment{
 		UserID:    userID.(uint),
 		EventID:   &eid,
 		Type:      "ticket",
+		TicketType: ticketType,
+		NotifyEventUpdates: input.NotifyEventUpdates,
 		Amount:    amountKobo,
 		Currency:  "KES",
 		Status:    "pending",
 		Reference: reference,
-	})
+	}
+	if err := db.DB.Create(&payment).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not start ticket payment"})
+		return
+	}
 
 	callbackURL := fmt.Sprintf("%s/payments/verify?ref=%s",
 		"https://galleria-b1yq.onrender.com", reference)
@@ -75,7 +123,7 @@ func InitiateTicketPayment(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"authorization_url": result.Data.AuthorizationURL,
 		"reference":         reference,
-		"amount":            event.Price,
+		"amount":            amount,
 	})
 }
 
@@ -103,41 +151,64 @@ func VerifyPayment(c *gin.Context) {
 		return
 	}
 
-	db.DB.Model(&payment).Updates(map[string]interface{}{
-		"status":       "success",
-		"paystack_ref": result.Data.Reference,
-	})
-
 	if payment.EventID != nil {
+		var existing models.Booking
+		if err := db.DB.Where("user_id = ? AND event_id = ?", payment.UserID, *payment.EventID).First(&existing).Error; err == nil {
+			db.DB.Model(&payment).Updates(map[string]interface{}{
+				"status":       "success",
+				"paystack_ref": result.Data.Reference,
+			})
+			c.Redirect(http.StatusFound,
+				fmt.Sprintf("https://galleria-flame-ten.vercel.app/bookings?success=already_booked&event=%d", *payment.EventID))
+			return
+		}
+
 		qrToken := fmt.Sprintf("%d-%d", payment.UserID, time.Now().UnixNano())
 		booking := models.Booking{
-			UserID:  payment.UserID,
-			EventID: *payment.EventID,
-			Status:  "confirmed",
-			QRToken: qrToken,
+			UserID:             payment.UserID,
+			EventID:            *payment.EventID,
+			Status:             "confirmed",
+			TicketType:         payment.TicketType,
+			NotifyEventUpdates: payment.NotifyEventUpdates,
+			QRToken:            qrToken,
 		}
-		db.DB.Create(&booking)
+		if err := db.DB.Create(&booking).Error; err != nil {
+			log.Printf("Could not create booking after successful payment %s: %v", reference, err)
+			c.Redirect(http.StatusFound, "https://galleria-flame-ten.vercel.app/bookings?error=booking_failed")
+			return
+		}
+		db.DB.Model(&payment).Updates(map[string]interface{}{
+			"status":       "success",
+			"paystack_ref": result.Data.Reference,
+		})
 
 		var user models.User
 		var event models.Event
 		db.DB.First(&user, payment.UserID)
 		db.DB.First(&event, *payment.EventID)
 
-		services.SendMail(
+		if err := services.SendMail(
 			user.Email, user.Name,
 			"Payment Confirmed — "+event.Title,
 			fmt.Sprintf(`
 				<h1>Payment successful!</h1>
-				<p>You've paid KES %d for <b>%s</b></p>
+				<p>You've paid KES %d for a %s ticket to <b>%s</b>.</p>
 				<p>Your check-in code: <b>%s</b></p>
-			`, payment.Amount/100, event.Title, qrToken),
-		)
+			`, payment.Amount/100, ticketTypeName(payment.TicketType), html.EscapeString(event.Title), qrToken),
+		); err != nil {
+			log.Printf("Could not send payment confirmation to attendee %d: %v", payment.UserID, err)
+		}
 
 		c.Redirect(http.StatusFound,
 			fmt.Sprintf("https://galleria-flame-ten.vercel.app/bookings?success=booked&event=%d",
 				*payment.EventID))
 		return
 	}
+
+	db.DB.Model(&payment).Updates(map[string]interface{}{
+		"status":       "success",
+		"paystack_ref": result.Data.Reference,
+	})
 
 	if payment.Type == "subscription" {
 		var plan models.OrganizerPlan
@@ -245,7 +316,10 @@ func PaystackWebhook(c *gin.Context) {
 
 		var payment models.Payment
 		if db.DB.Where("reference = ?", reference).First(&payment).Error == nil {
-			db.DB.Model(&payment).Update("status", "success")
+			// Ticket payments are finalized by the verified redirect together with their booking.
+			if payment.Type != "ticket" {
+				db.DB.Model(&payment).Update("status", "success")
+			}
 
 			if payment.Type == "subscription" {
 				var plan models.OrganizerPlan

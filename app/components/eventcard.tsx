@@ -1,25 +1,22 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { CalendarDays, MapPin, Ticket } from 'lucide-react'
 import type { MouseEvent } from 'react'
-import { Event, events } from '@/app/lib/api'
+import { Event } from '@/app/lib/api'
 
 interface Props {
   event: Event
 }
 
 export default function EventCard({ event }: Props) {
+  const router = useRouter()
   if (!event?.id) return null
 
-  const handleBook = async (e: MouseEvent<HTMLButtonElement>) => {
+  const handleBook = (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
-    try {
-      await events.book(event.id)
-      alert('Spot booked!')
-    } catch (err: any) {
-      alert(err.response?.data?.error || 'Booking failed')
-    }
+    router.push(`/events/${event.id}`)
   }
 
   return (
@@ -69,7 +66,7 @@ export default function EventCard({ event }: Props) {
         className="mx-4 mb-4 flex items-center justify-center gap-2 bg-[#14131F] py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#3730A9]"
       >
         <Ticket size={15} />
-        Book spot
+        View tickets
       </button>
     </article>
   )
