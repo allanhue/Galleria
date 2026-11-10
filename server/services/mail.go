@@ -4,8 +4,11 @@ import (
     "bytes"
     "encoding/json"
     "fmt"
+    "html"
     "net/http"
     "os"
+    "strings"
+    "time"
 )
 
 type BrevoMail struct {
@@ -22,7 +25,7 @@ type BrevoContact struct {
 
 // EmailTemplate wraps content in a professional HTML email template
 func EmailTemplate(content string) string {
-    return fmt.Sprintf(`
+    return strings.Replace(`
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -213,7 +216,7 @@ func EmailTemplate(content string) string {
         </div>
         
         <div class="email-body">
-            %s
+            {{EMAIL_CONTENT}}
         </div>
         
         <div class="email-footer">
@@ -229,7 +232,7 @@ func EmailTemplate(content string) string {
     </div>
 </body>
 </html>
-    `, content)
+    `, "{{EMAIL_CONTENT}}", content, 1)
 }
 
 func SendMail(toEmail, toName, subject, htmlContent string) error {
@@ -254,7 +257,7 @@ func SendMail(toEmail, toName, subject, htmlContent string) error {
     req.Header.Set("api-key", apiKey)
     req.Header.Set("Content-Type", "application/json")
 
-    client := &http.Client{}
+    client := &http.Client{Timeout: 10 * time.Second}
     resp, err := client.Do(req)
     if err != nil {
         return err
@@ -266,4 +269,27 @@ func SendMail(toEmail, toName, subject, htmlContent string) error {
     }
 
     return nil
+}
+
+func SendMessageNotification(toEmail, recipientName, senderName, message string, conversationID uint) error {
+    if senderName == "" {
+        senderName = "Someone"
+    }
+
+    preview := strings.TrimSpace(message)
+    if runes := []rune(preview); len(runes) > 240 {
+        preview = string(runes[:240]) + "..."
+    }
+
+    content := fmt.Sprintf(
+        `<h1>New message</h1>
+        <p><strong>%s</strong> sent you a message on Galleria:</p>
+        <p style="white-space: pre-wrap; background: #f5f5f5; padding: 16px; border-radius: 4px;">%s</p>
+        <p><a class="cta-button" href="https://galleria-flame-ten.vercel.app/messages/%d">Open your inbox</a></p>`,
+        html.EscapeString(senderName),
+        html.EscapeString(preview),
+        conversationID,
+    )
+
+    return SendMail(toEmail, recipientName, "New message on Galleria", content)
 }

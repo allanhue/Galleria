@@ -250,6 +250,7 @@ export interface UserSettings {
   notify_reposts: boolean
   notify_follows: boolean
   notify_messages: boolean
+  email_message_notifications: boolean
   notify_bookings: boolean
   allow_messages: string
   allow_follows: string

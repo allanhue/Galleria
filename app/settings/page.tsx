@@ -58,12 +58,15 @@ export default function SettingsPage() {
 
   const updatePref = async (key: keyof UserSettings, value: any) => {
     if (!prefs) return
+    const previous = prefs
     const updated = { ...prefs, [key]: value }
     setPrefs(updated)
     try {
       await settings.update({ [key]: value })
     } catch (err) {
       console.error(err)
+      setPrefs(previous)
+      showError('Failed to save this preference. Please try again.')
     }
   }
 
@@ -209,20 +212,28 @@ export default function SettingsPage() {
 
       {/* ── Notifications tab ── */}
       {tab === 'notifications' && prefs && (
-        <div className="border border-[#E4E1D8] bg-white divide-y divide-[#E4E1D8]">
+        <div className="flex flex-col border border-[#E4E1D8] bg-white divide-y divide-[#E4E1D8]">
+          <p className="px-5 py-3 text-xs text-gray-500">
+            Message email notifications are enabled by default and stay on until you turn them off.
+          </p>
           {[
             { key: 'notify_comments' as keyof UserSettings,  label: 'Comments on my ideas' },
             { key: 'notify_votes'    as keyof UserSettings,  label: 'Votes on my ideas' },
             { key: 'notify_saves'    as keyof UserSettings,  label: 'Someone saves my idea' },
             { key: 'notify_reposts'  as keyof UserSettings,  label: 'Someone reposts my idea' },
             { key: 'notify_follows'  as keyof UserSettings,  label: 'New followers' },
-            { key: 'notify_messages' as keyof UserSettings,  label: 'New messages' },
+            { key: 'notify_messages' as keyof UserSettings,  label: 'In-app notifications for new messages' },
+            { key: 'email_message_notifications' as keyof UserSettings, label: 'Email me when I receive a message' },
             { key: 'notify_bookings' as keyof UserSettings,  label: 'Booking confirmations' },
           ].map((item) => (
             <div key={item.key} className="flex items-center justify-between px-5 py-3">
               <span className="text-sm text-gray-700">{item.label}</span>
               <button
                 onClick={() => updatePref(item.key, !prefs[item.key])}
+                type="button"
+                role="switch"
+                aria-checked={Boolean(prefs[item.key])}
+                aria-label={item.label}
                 className={`w-10 h-6 rounded-full transition-colors relative ${
                   prefs[item.key] ? 'bg-[#3730A9]' : 'bg-gray-200'
                 }`}

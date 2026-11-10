@@ -1,11 +1,14 @@
 package handlers
 
 import (
+	"log"
 	"server/db"
 	"server/models"
+	"server/services"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // GetOrCreateConversation finds an existing conversation between two users
@@ -145,8 +148,39 @@ func SendMessage(c *gin.Context) {
 		otherID = convo.UserBID
 	}
 	createNotification(otherID, userID.(uint), "message", "You have a new message", nil, nil)
+	if otherID != userID.(uint) {
+		go sendMessageEmailNotification(otherID, message.Sender.Name, input.Body, convo.ID)
+	}
 
 	c.JSON(http.StatusCreated, message)
+}
+
+func sendMessageEmailNotification(recipientID uint, senderName, body string, conversationID uint) {
+	var recipient models.User
+	if err := db.DB.First(&recipient, recipientID).Error; err != nil {
+		log.Printf("failed to load message email recipient %d: %v", recipientID, err)
+		return
+	}
+
+	var settings models.UserSettings
+	err := db.DB.Where("user_id = ?", recipientID).First(&settings).Error
+	if err == gorm.ErrRecordNotFound {
+		settings = models.UserSettings{UserID: recipientID}
+		if err := db.DB.Create(&settings).Error; err != nil {
+			log.Printf("failed to initialize settings for message email recipient %d: %v", recipientID, err)
+			return
+		}
+	} else if err != nil {
+		log.Printf("failed to load settings for message email recipient %d: %v", recipientID, err)
+		return
+	}
+
+	if !settings.EmailMessageNotifications {
+		return
+	}
+	if err := services.SendMessageNotification(recipient.Email, recipient.Name, senderName, body, conversationID); err != nil {
+		log.Printf("failed to send message notification email to user %d: %v", recipientID, err)
+	}
 }
 
 func GetUnreadCount(c *gin.Context) {

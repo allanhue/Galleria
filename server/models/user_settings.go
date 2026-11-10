@@ -7,13 +7,14 @@ type UserSettings struct {
 	UserID uint `json:"user_id" gorm:"uniqueIndex"`
 
 	// Notification preferences
-	NotifyComments  bool `json:"notify_comments"  gorm:"default:true"`
-	NotifyVotes     bool `json:"notify_votes"     gorm:"default:true"`
-	NotifySaves     bool `json:"notify_saves"     gorm:"default:true"`
-	NotifyReposts   bool `json:"notify_reposts"   gorm:"default:true"`
-	NotifyFollows   bool `json:"notify_follows"   gorm:"default:true"`
-	NotifyMessages  bool `json:"notify_messages"  gorm:"default:true"`
-	NotifyBookings  bool `json:"notify_bookings"  gorm:"default:true"`
+	NotifyComments            bool `json:"notify_comments"  gorm:"default:true"`
+	NotifyVotes               bool `json:"notify_votes"     gorm:"default:true"`
+	NotifySaves               bool `json:"notify_saves"     gorm:"default:true"`
+	NotifyReposts             bool `json:"notify_reposts"   gorm:"default:true"`
+	NotifyFollows             bool `json:"notify_follows"   gorm:"default:true"`
+	NotifyMessages            bool `json:"notify_messages"  gorm:"default:true"`
+	EmailMessageNotifications bool `json:"email_message_notifications" gorm:"default:true"`
+	NotifyBookings            bool `json:"notify_bookings"  gorm:"default:true"`
 
 	// Privacy preferences
 	AllowMessages  string `json:"allow_messages"  gorm:"default:following"` // "everyone", "following", "none"
