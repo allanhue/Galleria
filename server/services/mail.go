@@ -66,8 +66,8 @@ func EmailTemplate(content string) string {
 			<table role="presentation" class="email-card" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; border:1px solid #e8e7e2;">
 				<tr>
 					<td style="padding:24px 44px 20px; border-bottom:3px solid #3730a9;">
-						<a href="https://galleria-flame-ten.vercel.app" style="color:#171722; font-size:18px; font-weight:800; letter-spacing:2px; text-decoration:none;">GALLERIA</a>
-						<span style="display:block; margin-top:5px; color:#777782; font-size:10px; font-weight:700; letter-spacing:1.4px; text-transform:uppercase;">Events and community</span>
+						<a href="https://galleria-flame-ten.vercel.app" style="color:#171722; font-size:18px; font-weight:800; letter-spacing:2px; text-decoration:none;">Galleria</a>
+						<span style="display:block; margin-top:5px; color:#777782; font-size:10px; font-weight:700; letter-spacing:1.4px; text-transform:uppercase;">Community</span>
 					</td>
 				</tr>
 				<tr><td class="email-content">{{EMAIL_CONTENT}}</td></tr>

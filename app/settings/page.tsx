@@ -213,9 +213,7 @@ export default function SettingsPage() {
       {/* ── Notifications tab ── */}
       {tab === 'notifications' && prefs && (
         <div className="flex flex-col border border-[#E4E1D8] bg-white divide-y divide-[#E4E1D8]">
-          <p className="px-5 py-3 text-xs text-gray-500">
-            Message email notifications are enabled by default and stay on until you turn them off.
-          </p>
+        
           {[
             { key: 'notify_comments' as keyof UserSettings,  label: 'Comments on my ideas' },
             { key: 'notify_votes'    as keyof UserSettings,  label: 'Votes on my ideas' },
