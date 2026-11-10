@@ -17,6 +17,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 const (
@@ -475,7 +476,7 @@ func UpdateEvent(c *gin.Context) {
 	}
 	if values.PhotoURLs != nil {
 		candidate.PhotoURLs = *values.PhotoURLs
-		updates["photo_urls"] = *values.PhotoURLs
+		updates["photo_urls"] = pq.StringArray(*values.PhotoURLs)
 	}
 	if values.IsFree != nil {
 		candidate.IsFree = *values.IsFree
@@ -526,10 +527,12 @@ func UpdateEvent(c *gin.Context) {
 
 	before := event
 	if err := db.DB.Model(&event).Updates(updates).Error; err != nil {
+		log.Printf("Failed to update event %s: %v", id, err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update event"})
 		return
 	}
 	if err := db.DB.First(&event, event.ID).Error; err != nil {
+		log.Printf("Event %s was updated but could not be reloaded: %v", id, err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Event was updated but could not be reloaded"})
 		return
 	}
