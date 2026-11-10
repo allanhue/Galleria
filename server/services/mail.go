@@ -25,214 +25,65 @@ type BrevoContact struct {
 
 // EmailTemplate wraps content in a professional HTML email template
 func EmailTemplate(content string) string {
-    return strings.Replace(`
+	return strings.Replace(`
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galleria</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f9f9f9;
-        }
-        
-        .email-container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #ffffff;
-        }
-        
-        .email-header {
-            background: linear-gradient(135deg, #3730A9 0%, #5B5AC7 100%);
-            color: white;
-            padding: 40px 20px;
-            text-align: center;
-            border-bottom: 4px solid #2F2A8C;
-        }
-        
-        .email-header h1 {
-            font-size: 32px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            margin: 0;
-        }
-        
-        .email-body {
-            padding: 40px 30px;
-        }
-        
-        .email-body h1 {
-            font-size: 24px;
-            color: #14131F;
-            margin-bottom: 20px;
-            font-weight: 700;
-        }
-        
-        .email-body h2 {
-            font-size: 20px;
-            color: #3730A9;
-            margin-top: 25px;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-        
-        .email-body p {
-            font-size: 14px;
-            color: #555;
-            margin-bottom: 15px;
-            line-height: 1.8;
-        }
-        
-        .email-body b, .email-body strong {
-            color: #3730A9;
-            font-weight: 600;
-        }
-        
-        .code-block {
-            background-color: #f5f5f5;
-            border-left: 4px solid #3730A9;
-            padding: 20px;
-            margin: 20px 0;
-            font-family: 'Monaco', 'Courier New', monospace;
-            font-size: 18px;
-            letter-spacing: 4px;
-            text-align: center;
-            color: #14131F;
-            font-weight: 600;
-            border-radius: 4px;
-        }
-        
-        .cta-button {
-            display: inline-block;
-            background: linear-gradient(135deg, #3730A9 0%, #5B5AC7 100%);
-            color: white;
-            padding: 12px 30px;
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 14px;
-            margin: 20px 0;
-            transition: transform 0.2s;
-        }
-        
-        .cta-button:hover {
-            transform: translateY(-2px);
-        }
-        
-        .divider {
-            border: none;
-            border-top: 1px solid #E4E1D8;
-            margin: 30px 0;
-        }
-        
-        .highlight {
-            background-color: #FFF7E6;
-            padding: 15px;
-            border-left: 4px solid #F59E0B;
-            border-radius: 4px;
-            margin: 15px 0;
-            font-size: 13px;
-            color: #92400E;
-        }
-        
-        .success-box {
-            background-color: #F0FDF4;
-            border: 1px solid #86EFAC;
-            border-left: 4px solid #22C55E;
-            padding: 15px;
-            border-radius: 4px;
-            margin: 15px 0;
-            color: #15803D;
-        }
-        
-        .email-footer {
-            background-color: #FAF9F6;
-            border-top: 1px solid #E4E1D8;
-            padding: 30px;
-            text-align: center;
-            color: #999;
-            font-size: 12px;
-            line-height: 1.8;
-        }
-        
-        .email-footer p {
-            margin-bottom: 8px;
-        }
-        
-        .email-footer a {
-            color: #3730A9;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        
-        .email-footer a:hover {
-            text-decoration: underline;
-        }
-        
-        .social-links {
-            margin-top: 15px;
-        }
-        
-        .social-links a {
-            display: inline-block;
-            margin: 0 10px;
-            color: #3730A9;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 600;
-        }
-        
-        @media (max-width: 600px) {
-            .email-body {
-                padding: 25px 15px;
-            }
-            
-            .email-body h1 {
-                font-size: 20px;
-            }
-            
-            .code-block {
-                font-size: 14px;
-                letter-spacing: 2px;
-                padding: 15px;
-            }
-        }
-    </style>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="color-scheme" content="light">
+	<title>Galleria</title>
+	<style>
+		body { margin: 0; padding: 0; background: #f4f3ef; color: #20202a; font-family: Arial, Helvetica, sans-serif; -webkit-text-size-adjust: 100%; }
+		table { border-collapse: collapse; }
+		.email-shell { width: 100%; background: #f4f3ef; padding: 32px 16px; }
+		.email-card { width: 100%; max-width: 600px; background: #ffffff; }
+		.email-content { padding: 42px 44px 40px; font-size: 15px; line-height: 1.7; color: #454550; }
+		.email-content h1 { margin: 0 0 18px; color: #171722; font-size: 26px; line-height: 1.25; letter-spacing: -0.5px; }
+		.email-content h2 { margin: 28px 0 12px; color: #252531; font-size: 18px; line-height: 1.35; }
+		.email-content p { margin: 0 0 16px; }
+		.email-content strong, .email-content b { color: #20202a; font-weight: 700; }
+		.email-content a:not(.cta-button) { color: #3730a9; }
+		.cta-button { display: inline-block; margin: 10px 0 4px; padding: 12px 20px; background: #3730a9; border: 1px solid #3730a9; border-radius: 4px; color: #ffffff !important; font-size: 14px; font-weight: 700; line-height: 1.3; text-decoration: none; }
+		.code-block { margin: 22px 0; padding: 18px; background: #f5f5f7; border: 1px solid #e4e3e9; color: #171722; font-family: 'Courier New', monospace; font-size: 18px; font-weight: 700; letter-spacing: 4px; text-align: center; }
+		.highlight { margin: 20px 0; padding: 14px 16px; background: #f7f6fb; border-left: 3px solid #3730a9; color: #343343; font-size: 14px; }
+		.success-box { margin: 20px 0; padding: 14px 16px; background: #f3f8f4; border: 1px solid #d6e8d9; color: #285a35; font-size: 14px; }
+		.divider { height: 1px; margin: 28px 0; border: 0; background: #e8e7e2; }
+		.email-footer { padding: 22px 32px 26px; border-top: 1px solid #e8e7e2; color: #777782; font-size: 12px; line-height: 1.7; }
+		.email-footer p { margin: 0 0 6px; }
+		.email-footer a { color: #3730a9; font-weight: 700; text-decoration: none; }
+		@media only screen and (max-width: 600px) {
+			.email-shell { padding: 12px 8px !important; }
+			.email-content { padding: 30px 22px !important; }
+			.email-content h1 { font-size: 23px !important; }
+			.email-footer { padding: 20px 22px !important; }
+		}
+	</style>
 </head>
 <body>
-    <div class="email-container">
-        <div class="email-header">
-            <h1>GALLERIA</h1>
-        </div>
-        
-        <div class="email-body">
-            {{EMAIL_CONTENT}}
-        </div>
-        
-        <div class="email-footer">
-            <p><strong>Galleria</strong> — Discover and Book Events</p>
-            <p>© 2026 Galleria. All rights reserved.</p>
-            <div class="social-links">
-                <a href="https://galleria-flame-ten.vercel.app">Visit Galleria</a>
-            </div>
-            <p style="margin-top: 15px; font-size: 11px; color: #ccc;">
-                You received this email because you have an account with Galleria.
-            </p>
-        </div>
-    </div>
+	<table role="presentation" class="email-shell" width="100%" cellpadding="0" cellspacing="0" border="0">
+		<tr><td align="center">
+			<table role="presentation" class="email-card" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; border:1px solid #e8e7e2;">
+				<tr>
+					<td style="padding:24px 44px 20px; border-bottom:3px solid #3730a9;">
+						<a href="https://galleria-flame-ten.vercel.app" style="color:#171722; font-size:18px; font-weight:800; letter-spacing:2px; text-decoration:none;">GALLERIA</a>
+						<span style="display:block; margin-top:5px; color:#777782; font-size:10px; font-weight:700; letter-spacing:1.4px; text-transform:uppercase;">Events and community</span>
+					</td>
+				</tr>
+				<tr><td class="email-content">{{EMAIL_CONTENT}}</td></tr>
+				<tr>
+					<td class="email-footer">
+						<p><strong>Galleria</strong> &middot; Discover events worth showing up for.</p>
+						<p><a href="https://galleria-flame-ten.vercel.app">Visit Galleria</a></p>
+						<p style="margin-top:14px; color:#8a8991; font-size:11px;">You received this email because you have a Galleria account.</p>
+					</td>
+				</tr>
+			</table>
+		</td></tr>
+	</table>
 </body>
 </html>
-    `, "{{EMAIL_CONTENT}}", content, 1)
+	`, "{{EMAIL_CONTENT}}", content, 1)
 }
 
 func SendMail(toEmail, toName, subject, htmlContent string) error {
