@@ -52,6 +52,11 @@ func main() {
 		log.Fatalf("Failed to migrate database schema: %v", err)
 	}
 
+	if err := db.EnsureEventTicketColumns(); err != nil {
+		log.Fatalf("Failed to ensure event ticket columns: %v", err)
+	}
+	log.Println("Event ticket columns are ready")
+
 	db.SeedEvents()
 	services.StartFeedScheduler()
 
