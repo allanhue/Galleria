@@ -538,6 +538,7 @@ func UpdateEvent(c *gin.Context) {
 	}
 
 	sent, failures := 0, 0
+	attendeeNotificationsSent, attendeeNotificationFailures := 0, 0
 	if !reflect.DeepEqual(before, event) {
 		var bookings []models.Booking
 		if err := db.DB.Preload("User").
@@ -570,7 +571,20 @@ func UpdateEvent(c *gin.Context) {
 				html.EscapeString(generalTicketDetails), html.EscapeString(vipTicketDetails),
 				html.EscapeString(flashSaleDetails),
 			)
+			notifiedUsers := make(map[uint]struct{}, len(bookings))
 			for _, booking := range bookings {
+				if _, alreadyNotified := notifiedUsers[booking.UserID]; alreadyNotified {
+					continue
+				}
+				notifiedUsers[booking.UserID] = struct{}{}
+
+				if err := createEventUpdateNotification(booking.UserID, event.OrganizerID, event); err != nil {
+					log.Printf("Could not create event update notification for attendee %d on event %d: %v", booking.UserID, event.ID, err)
+					attendeeNotificationFailures++
+				} else if booking.UserID != event.OrganizerID {
+					attendeeNotificationsSent++
+				}
+
 				if err := services.SendMail(booking.User.Email, booking.User.Name, "Event update — "+event.Title, content); err != nil {
 					log.Printf("Could not notify attendee %d about event %d update: %v", booking.UserID, event.ID, err)
 					failures++
@@ -581,9 +595,11 @@ func UpdateEvent(c *gin.Context) {
 		}
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"event": event,
-		"notifications_sent": sent,
-		"notification_failures": failures,
+		"event":                          event,
+		"notifications_sent":             sent,
+		"notification_failures":          failures,
+		"attendee_notifications_sent":    attendeeNotificationsSent,
+		"attendee_notification_failures": attendeeNotificationFailures,
 	})
 }
 

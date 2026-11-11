@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"fmt"
+	"log"
+	"net/http"
 	"server/db"
 	"server/models"
-	"net/http"
-    "server/services"
+	"server/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -38,17 +40,49 @@ func SavePushSubscription(c *gin.Context) {
 
 func sendPushToUser(userID uint, title, body, url string) {
 	var subs []models.PushSubscription
-	db.DB.Where("user_id = ?", userID).Find(&subs)
+	if err := db.DB.Where("user_id = ?", userID).Find(&subs).Error; err != nil {
+		log.Printf("Could not load push subscriptions for user %d: %v", userID, err)
+		return
+	}
 
 	for _, sub := range subs {
-		go services.SendPush(sub.Endpoint, sub.P256dh, sub.Auth, services.PushPayload{
-			Title: title,
-			Body:  body,
-			URL:   url,
-		})
+		go func(sub models.PushSubscription) {
+			if err := services.SendPush(sub.Endpoint, sub.P256dh, sub.Auth, services.PushPayload{
+				Title: title,
+				Body:  body,
+				URL:   url,
+			}); err != nil {
+				log.Printf("Could not send push notification to user %d: %v", userID, err)
+			}
+		}(sub)
 	}
 }
 
+func createEventUpdateNotification(userID, organizerID uint, event models.Event) error {
+	if userID == organizerID {
+		return nil
+	}
+
+	message := fmt.Sprintf("%q has been updated. Review the latest event details.", event.Title)
+	eventID := event.ID
+	if err := db.DB.Create(&models.Notification{
+		UserID:  userID,
+		ActorID: organizerID,
+		Type:    "event_update",
+		EventID: &eventID,
+		Message: message,
+	}).Error; err != nil {
+		return err
+	}
+
+	go sendPushToUser(
+		userID,
+		"Event updated",
+		message,
+		fmt.Sprintf("https://galleria-flame-ten.vercel.app/events/%d", event.ID),
+	)
+	return nil
+}
 
 func createNotification(userID, actorID uint, notifType, message string, postID, eventID *uint) {
 	if userID == actorID {

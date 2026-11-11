@@ -106,10 +106,20 @@ export default function EditEventPage() {
         flash_sale_ends_at: saleTimeToISO(form.flash_sale_ends_at),
         photo_urls: photos,
       })
-      const { notifications_sent, notification_failures } = res.data
+      const {
+        attendee_notifications_sent,
+        attendee_notification_failures,
+        notifications_sent,
+        notification_failures,
+      } = res.data
       setSuccess(
-        `Event updated. ${notifications_sent} subscribed attendee${notifications_sent === 1 ? '' : 's'} emailed.` +
-        (notification_failures > 0 ? ` ${notification_failures} email notification${notification_failures === 1 ? '' : 's'} failed; check the server logs.` : '')
+        `Event updated. ${attendee_notifications_sent} subscribed attendee${attendee_notifications_sent === 1 ? '' : 's'} notified; ${notifications_sent} email${notifications_sent === 1 ? '' : 's'} sent.` +
+        (attendee_notification_failures > 0
+          ? ` ${attendee_notification_failures} attendee notification${attendee_notification_failures === 1 ? '' : 's'} failed.`
+          : '') +
+        (notification_failures > 0
+          ? ` ${notification_failures} email notification${notification_failures === 1 ? '' : 's'} failed.`
+          : '')
       )
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to update event')

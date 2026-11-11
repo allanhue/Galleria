@@ -1,12 +1,14 @@
 package main
 
 import (
+	"log"
+	"os"
+
 	"server/db"
 	"server/handlers"
 	"server/middleware"
 	"server/models"
 	"server/services"
-	"os"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -18,7 +20,7 @@ func main() {
 
 	db.Connect()
 
-	db.DB.AutoMigrate(
+	if err := db.DB.AutoMigrate(
 		&models.User{},
 		&models.Event{},
 		&models.Booking{},
@@ -46,7 +48,9 @@ func main() {
 	&models.Waitlist{},
 
 
-	)
+	); err != nil {
+		log.Fatalf("Failed to migrate database schema: %v", err)
+	}
 
 	db.SeedEvents()
 	services.StartFeedScheduler()

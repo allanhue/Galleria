@@ -358,7 +358,13 @@ create: (data: {
 }) => api.post<Event>('/events', data),
 
   update: (id: number, data: Partial<Event>) =>
-    api.put<{ event: Event; notifications_sent: number; notification_failures: number }>(`/events/${id}`, data),
+    api.put<{
+      event: Event
+      notifications_sent: number
+      notification_failures: number
+      attendee_notifications_sent: number
+      attendee_notification_failures: number
+    }>(`/events/${id}`, data),
 
   delete: (id: number) =>
     api.delete(`/events/${id}`),
