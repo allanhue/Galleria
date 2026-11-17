@@ -93,15 +93,15 @@ func InitiateTicketPayment(c *gin.Context) {
 
 	eid := event.ID
 	payment := models.Payment{
-		UserID:    userID.(uint),
-		EventID:   &eid,
-		Type:      "ticket",
-		TicketType: ticketType,
+		UserID:             userID.(uint),
+		EventID:            &eid,
+		Type:               "ticket",
+		TicketType:         ticketType,
 		NotifyEventUpdates: input.NotifyEventUpdates,
-		Amount:    amountKobo,
-		Currency:  "KES",
-		Status:    "pending",
-		Reference: reference,
+		Amount:             amountKobo,
+		Currency:           "KES",
+		Status:             "pending",
+		Reference:          reference,
 	}
 	if err := db.DB.Create(&payment).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not start ticket payment"})
@@ -190,11 +190,18 @@ func VerifyPayment(c *gin.Context) {
 		if err := services.SendMail(
 			user.Email, user.Name,
 			"Payment Confirmed — "+event.Title,
-			fmt.Sprintf(`
-				<h1>Payment successful!</h1>
-				<p>You've paid KES %d for a %s ticket to <b>%s</b>.</p>
-				<p>Your check-in code: <b>%s</b></p>
-			`, payment.Amount/100, ticketTypeName(payment.TicketType), html.EscapeString(event.Title), qrToken),
+			fmt.Sprintf(`<p class="eyebrow">Payment confirmed</p>
+				<h1>Your ticket is ready.</h1>
+				<p>Your payment was successful. Keep this check-in code ready for event day.</p>
+				<div class="success-box">
+					<strong>%s</strong><br>
+					%s ticket &middot; KES %d
+				</div>
+				<p class="eyebrow">Your check-in code</p>
+				<div class="code-block">%s</div>
+				<p><a class="cta-button" href="https://galleria-flame-ten.vercel.app/bookings">View your ticket</a></p>`,
+				html.EscapeString(event.Title), html.EscapeString(ticketTypeName(payment.TicketType)),
+				payment.Amount/100, html.EscapeString(qrToken)),
 		); err != nil {
 			log.Printf("Could not send payment confirmation to attendee %d: %v", payment.UserID, err)
 		}
