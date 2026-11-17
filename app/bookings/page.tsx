@@ -7,7 +7,21 @@ import Cookies from 'js-cookie'
 import Link from 'next/link'
 import Spinner from '@/app/components/spinner'
 import { QRCodeSVG } from 'qrcode.react'
+import { renderToStaticMarkup } from 'react-dom/server'
 import { ChevronDown, ChevronUp, CheckCircle2, Download, X } from 'lucide-react'
+
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, (character) => {
+    switch (character) {
+      case '&': return '&amp;'
+      case '<': return '&lt;'
+      case '>': return '&gt;'
+      case '"': return '&quot;'
+      case "'": return '&#39;'
+      default: return character
+    }
+  })
+}
 
 const ticketTypeLabel = (ticketType?: string) => {
   switch (ticketType) {
@@ -30,227 +44,195 @@ function BookingsContent() {
   const [expanded, setExpanded] = useState<number | null>(null)
 
   const downloadTicket = (booking: Booking) => {
+    const qrCode = renderToStaticMarkup(
+      <QRCodeSVG value={booking.qr_token} size={220} bgColor="#ffffff" fgColor="#17171d" level="M" />,
+    )
+    const eventTitle = escapeHtml(booking.event?.title || 'Event')
+    const eventDate = escapeHtml(booking.event?.date || 'Date to be announced')
+    const eventLocation = escapeHtml(booking.event?.location || 'Venue to be announced')
+    const ticketType = escapeHtml(ticketTypeLabel(booking.ticket_type))
+    const ticketStatus = escapeHtml(booking.checked_in ? 'Checked in' : booking.status || 'Confirmed')
+    const ticketNumber = escapeHtml(
+      booking.qr_token.slice(0, 8).toUpperCase() || `GAL-${booking.id}`,
+    )
     const htmlContent = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Galleria Event Ticket</title>
+  <title>${eventTitle} | Galleria Event Pass</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
+    * { box-sizing: border-box; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      background: #f5f5f5;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
+      margin: 0;
+      padding: 36px 16px;
+      background: #eef0f4;
+      color: #17171d;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
-    
-    .ticket {
+    .ticket-shell {
       width: 100%;
-      max-width: 500px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      max-width: 460px;
+      margin: 0 auto;
       overflow: hidden;
+      padding: 10px;
+      background: #17171d;
+      border: 1px solid #34343b;
+      border-radius: 18px;
+      box-shadow: 0 15px 40px rgba(23, 23, 29, .18);
     }
-    
-    .ticket-header {
-      background: linear-gradient(135deg, #3730A9 0%, #5B5AC7 100%);
-      color: white;
-      padding: 30px 20px;
+    .ticket-heading {
+      padding: 10px 12px 3px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 1.1px;
       text-align: center;
     }
-    
-    .ticket-header h1 {
-      font-size: 28px;
-      font-weight: 700;
-      margin-bottom: 5px;
-      letter-spacing: 2px;
+    .ticket-instruction {
+      margin: 0 0 13px;
+      padding: 0 12px;
+      color: #c9c9d0;
+      font-size: 10px;
+      text-align: center;
     }
-    
-    .ticket-header p {
-      font-size: 12px;
-      opacity: 0.9;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    
-    .ticket-body {
-      padding: 30px 20px;
-    }
-    
-    .ticket-row {
+    .ticket-card { overflow: hidden; background: #fff; border-radius: 11px; }
+    .ticket-brand-row {
       display: flex;
+      align-items: center;
       justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 20px;
-      border-bottom: 1px solid #E4E1D8;
-      padding-bottom: 20px;
+      gap: 12px;
+      padding: 17px 19px 0;
     }
-    
-    .ticket-row:last-of-type {
-      border-bottom: none;
-      margin-bottom: 0;
-      padding-bottom: 0;
-    }
-    
-    .ticket-label {
-      font-size: 12px;
-      color: #999;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      font-weight: 500;
-    }
-    
-    .ticket-value {
-      font-size: 16px;
-      color: #14131F;
-      font-weight: 600;
-      text-align: right;
-      flex: 1;
-      margin-left: 15px;
-      word-break: break-word;
-    }
-    
-    .event-title {
+    .brand { color: #27263d; font-size: 13px; font-weight: 800; letter-spacing: 1.8px; }
+    .ticket-reference { color: #777782; font-size: 9px; font-weight: 700; letter-spacing: .5px; }
+    .ticket-event {
+      padding: 14px 19px 0;
+      color: #17171d;
       font-size: 20px;
+      font-weight: 750;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+    .qr-code { width: fit-content; margin: 18px auto 10px; padding: 7px; background: #fff; }
+    .qr-code svg { display: block; width: 200px; height: 200px; }
+    .scan-hint { padding: 0 20px 17px; color: #777782; font-size: 10px; text-align: center; }
+    .perforation {
+      position: relative;
+      height: 1px;
+      margin: 0 12px;
+      border-top: 1px dashed #b6b6bf;
+    }
+    .perforation::before, .perforation::after {
+      position: absolute;
+      top: -9px;
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      background: #17171d;
+      content: '';
+    }
+    .perforation::before { left: -21px; }
+    .perforation::after { right: -21px; }
+    .ticket-details { display: grid; grid-template-columns: 1fr 1fr; gap: 17px 14px; padding: 18px 19px 20px; }
+    .detail { min-width: 0; }
+    .label {
+      margin-bottom: 7px;
+      color: #777689;
+      font-size: 9px;
       font-weight: 700;
-      color: #14131F;
-    }
-    
-    .status-badge {
-      display: inline-block;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
+      letter-spacing: 1px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-top: 10px;
     }
-    
-    .status-badge.checked-in {
-      background: #D1FAE5;
-      color: #065F46;
-    }
-    
-    .status-badge.confirmed {
-      background: #EEEDFB;
-      color: #3730A9;
-    }
-    
-    .ticket-footer {
-      background: #FAF9F6;
-      padding: 20px;
-      text-align: center;
-      border-top: 2px dashed #E4E1D8;
-    }
-    
-    .ticket-footer p {
+    .value {
+      color: #25243a;
       font-size: 12px;
-      color: #666;
+      font-weight: 600;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+    .status {
+      display: inline-block;
+      padding: 4px 8px;
+      border: 1px solid #dcd9f1;
+      border-radius: 4px;
+      background: #f3f1fc;
+      color: #3730a9;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .3px;
+    }
+    .ticket-footer {
+      padding: 14px 18px 9px;
+      color: #d0cfd6;
+      font-size: 10px;
       line-height: 1.6;
+      text-align: center;
     }
-    
-    .divider {
-      height: 2px;
-      background: linear-gradient(90deg, transparent, #E4E1D8, transparent);
-      margin: 20px 0;
+    .print-button {
+      display: block;
+      margin: 20px auto 0;
+      padding: 10px 17px;
+      border: 1px solid #d8d6e5;
+      border-radius: 5px;
+      background: #fff;
+      color: #27263d;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
     }
-    
-    @media (max-width: 600px) {
-      .ticket {
-        max-width: 100%;
-      }
-      
-      .ticket-header h1 {
-        font-size: 24px;
-      }
-      
-      .ticket-value {
-        font-size: 14px;
-      }
+    @media (max-width: 400px) {
+      body { padding: 18px 9px; }
+      .ticket-event { font-size: 18px; }
+      .qr-code svg { width: 184px; height: 184px; }
+      .ticket-details { gap: 14px 10px; padding-right: 15px; padding-left: 15px; }
     }
-    
+    @page { margin: 14mm; }
     @media print {
-      body {
-        background: white;
-        padding: 0;
-      }
-      
-      .ticket {
-        box-shadow: none;
-        border-radius: 0;
-      }
+      body { padding: 0; background: #fff; }
+      .ticket-shell { max-width: 440px; border-radius: 10px; box-shadow: none; }
+      .print-button { display: none; }
     }
   </style>
 </head>
 <body>
-  <div class="ticket">
-    <div class="ticket-header">
-      <h1>GALLERIA</h1>
-      <p>Event Ticket</p>
-    </div>
-    
-    <div class="ticket-body">
-      <div class="ticket-row">
-        <div>
-          <div class="ticket-label">Event</div>
-          <div class="ticket-value event-title">${booking.event?.title || 'Event'}</div>
-        </div>
+  <div class="ticket-shell">
+    <div class="ticket-heading">THIS IS YOUR TICKET</div>
+    <p class="ticket-instruction">Show this QR code at the entrance for check-in.</p>
+    <div class="ticket-card">
+      <div class="ticket-brand-row">
+        <div class="brand">GALLERIA</div>
+        <div class="ticket-reference">TICKET ${ticketNumber}</div>
       </div>
-      
-      <div class="ticket-row">
-        <div>
-          <div class="ticket-label">Date & Location</div>
-          <div class="ticket-value">${booking.event?.date} · ${booking.event?.location}</div>
+      <div class="ticket-event">${eventTitle}</div>
+      <div class="qr-code" aria-label="Ticket check-in QR code">${qrCode}</div>
+      <div class="scan-hint">Keep your ticket ready on arrival</div>
+      <div class="perforation"></div>
+      <div class="ticket-details">
+        <div class="detail">
+          <div class="label">Date</div>
+          <div class="value">${eventDate}</div>
         </div>
-      </div>
-      
-      <div class="ticket-row">
-        <div>
-          <div class="ticket-label">Ticket Type</div>
-          <div class="ticket-value">${ticketTypeLabel(booking.ticket_type)}</div>
+        <div class="detail">
+          <div class="label">Venue</div>
+          <div class="value">${eventLocation}</div>
         </div>
-      </div>
-
-      <div class="ticket-row">
-        <div>
-          <div class="ticket-label">Booking Status</div>
-          <div>
-            <div class="ticket-value">${booking.status}</div>
-            <span class="status-badge ${booking.checked_in ? 'checked-in' : ''}">
-              ${booking.checked_in ? '✓ Checked In' : 'Confirmed'}
-            </span>
-          </div>
+        <div class="detail">
+          <div class="label">Ticket type</div>
+          <div class="value">${ticketType}</div>
         </div>
-      </div>
-      
-      <div class="divider"></div>
-      
-      <div class="ticket-row">
-        <div> 
-          <div class="ticket-label">Ticket No:</div>
-          <div class="ticket-value" style="font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; letter-spacing: 2px;">
-            ${booking.qr_token.slice(0, 8).toUpperCase()}
-          </div>
+        <div class="detail">
+          <div class="label">Booking status</div>
+          <div class="value"><span class="status">${ticketStatus}</span></div>
         </div>
       </div>
     </div>
-    
-    <div class="ticket-footer">
-      <p style="margin-top: 8px;">Save this file for your records</p>
-    </div>
+    <div class="ticket-footer">GALLERIA &middot; Your pass to events worth showing up for.</div>
   </div>
+  <button class="print-button" type="button" onclick="window.print()">Print ticket</button>
 </body>
 </html>
     `.trim()

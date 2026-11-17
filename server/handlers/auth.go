@@ -2,16 +2,17 @@ package handlers
 
 import (
 	"fmt"
-	"math/rand"
-	"time"
-	"server/db"
-	"server/models"
-	"server/services"
-	"net/http"
-	"os"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"html"
+	"math/rand"
+	"net/http"
+	"os"
+	"server/db"
+	"server/models"
+	"server/services"
+	"time"
 )
 
 func Register(c *gin.Context) {
@@ -63,7 +64,10 @@ func Register(c *gin.Context) {
 		user.Email,
 		user.Name,
 		"Welcome to Galleria",
-		"<h1>Welcome to Galleria!</h1><p>Thanks for joining. Discover and book events happening around you.</p>",
+		`<p class="eyebrow">Welcome to the community</p>
+		<h1>Welcome to Galleria, `+html.EscapeString(user.Name)+`</h1>
+		<p>Your account is ready. Find events, meet your people, and book your next great experience.</p>
+		<p><a class="cta-button" href="https://galleria-flame-ten.vercel.app/events">Explore events</a></p>`,
 	)
 
 	c.JSON(http.StatusCreated, gin.H{"message": "Account created", "user": user})
@@ -141,12 +145,11 @@ func ForgotPassword(c *gin.Context) {
 		user.Email,
 		user.Name,
 		"Reset your Galleria password",
-		fmt.Sprintf(`
-			<h2>Password reset</h2>
-			<p>Your reset code is:</p>
-			<h1 style="letter-spacing:8px">%s</h1>
-			<p>This code expires in 15 minutes.</p>
-			<p>If you didn't request this, ignore this email.</p>
+		fmt.Sprintf(`<p class="eyebrow">Account security</p>
+			<h1>Reset your password</h1>
+			<p>Use the secure code below to reset your Galleria password.</p>
+			<div class="code-block">%s</div>
+			<div class="highlight">This code expires in 15 minutes. If you did not request a password reset, you can safely ignore this email.</div>
 		`, code),
 	)
 

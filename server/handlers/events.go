@@ -193,21 +193,21 @@ func GetEvent(c *gin.Context) {
 		"date": event.Date, "location": event.Location, "city": event.City,
 		"country": event.Country, "category": event.Category, "capacity": event.Capacity,
 		"organizer_id": event.OrganizerID, "source": event.Source, "photo_urls": event.PhotoURLs,
-		"is_free":         event.IsFree,
-		"price":           event.Price,
-		"vip_price":       event.VIPPrice,
-		"vip_capacity":    event.VIPCapacity,
-		"vip_spots_remaining": vipRemaining,
-		"flash_sale_price": event.FlashSalePrice,
-		"flash_sale_capacity": event.FlashSaleCapacity,
+		"is_free":                    event.IsFree,
+		"price":                      event.Price,
+		"vip_price":                  event.VIPPrice,
+		"vip_capacity":               event.VIPCapacity,
+		"vip_spots_remaining":        vipRemaining,
+		"flash_sale_price":           event.FlashSalePrice,
+		"flash_sale_capacity":        event.FlashSaleCapacity,
 		"flash_sale_spots_remaining": flashRemaining,
-		"flash_sale_starts_at": event.FlashSaleStartsAt,
-		"flash_sale_ends_at": event.FlashSaleEndsAt,
-		"flash_sale_active": isFlashSaleActive(event, time.Now()) && flashRemaining > 0,
-		"created_at":      event.CreatedAt,
-		"spots_taken":     bookedCount,
-		"spots_remaining": int64(event.Capacity) - bookedCount,
-		"sold_out":        bookedCount >= int64(event.Capacity),
+		"flash_sale_starts_at":       event.FlashSaleStartsAt,
+		"flash_sale_ends_at":         event.FlashSaleEndsAt,
+		"flash_sale_active":          isFlashSaleActive(event, time.Now()) && flashRemaining > 0,
+		"created_at":                 event.CreatedAt,
+		"spots_taken":                bookedCount,
+		"spots_remaining":            int64(event.Capacity) - bookedCount,
+		"sold_out":                   bookedCount >= int64(event.Capacity),
 	})
 }
 
@@ -235,23 +235,23 @@ func CreateEvent(c *gin.Context) {
 	}
 
 	var input struct {
-		Title       string   `json:"title"       binding:"required"`
-		Description string   `json:"description" binding:"required"`
-		Date        string   `json:"date"        binding:"required"`
-		Location    string   `json:"location"    binding:"required"`
-		Category    string   `json:"category"    binding:"required"`
-		Capacity    int      `json:"capacity"    binding:"required"`
-		PhotoURLs   []string `json:"photo_urls"`
-		City        string   `json:"city"`
-		Country     string   `json:"country"`
-		IsFree      bool     `json:"is_free"`
-		Price       int64    `json:"price"`
-		VIPPrice    int64    `json:"vip_price"`
-		VIPCapacity int      `json:"vip_capacity"`
-		FlashSalePrice    int64   `json:"flash_sale_price"`
-		FlashSaleCapacity int     `json:"flash_sale_capacity"`
-		FlashSaleStartsAt *string `json:"flash_sale_starts_at"`
-		FlashSaleEndsAt   *string `json:"flash_sale_ends_at"`
+		Title             string   `json:"title"       binding:"required"`
+		Description       string   `json:"description" binding:"required"`
+		Date              string   `json:"date"        binding:"required"`
+		Location          string   `json:"location"    binding:"required"`
+		Category          string   `json:"category"    binding:"required"`
+		Capacity          int      `json:"capacity"    binding:"required"`
+		PhotoURLs         []string `json:"photo_urls"`
+		City              string   `json:"city"`
+		Country           string   `json:"country"`
+		IsFree            bool     `json:"is_free"`
+		Price             int64    `json:"price"`
+		VIPPrice          int64    `json:"vip_price"`
+		VIPCapacity       int      `json:"vip_capacity"`
+		FlashSalePrice    int64    `json:"flash_sale_price"`
+		FlashSaleCapacity int      `json:"flash_sale_capacity"`
+		FlashSaleStartsAt *string  `json:"flash_sale_starts_at"`
+		FlashSaleEndsAt   *string  `json:"flash_sale_ends_at"`
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -271,21 +271,21 @@ func CreateEvent(c *gin.Context) {
 	}
 
 	event := models.Event{
-		Title:       input.Title,
-		Description: input.Description,
-		Date:        input.Date,
-		Location:    input.Location,
-		Category:    input.Category,
-		Capacity:    input.Capacity,
-		PhotoURLs:   input.PhotoURLs,
-		City:        input.City,
-		Country:     input.Country,
-		Source:      "own",
-		OrganizerID: userID.(uint),
-		IsFree:      input.IsFree,
-		Price:       input.Price,
-		VIPPrice:    input.VIPPrice,
-		VIPCapacity: input.VIPCapacity,
+		Title:             input.Title,
+		Description:       input.Description,
+		Date:              input.Date,
+		Location:          input.Location,
+		Category:          input.Category,
+		Capacity:          input.Capacity,
+		PhotoURLs:         input.PhotoURLs,
+		City:              input.City,
+		Country:           input.Country,
+		Source:            "own",
+		OrganizerID:       userID.(uint),
+		IsFree:            input.IsFree,
+		Price:             input.Price,
+		VIPPrice:          input.VIPPrice,
+		VIPCapacity:       input.VIPCapacity,
 		FlashSalePrice:    input.FlashSalePrice,
 		FlashSaleCapacity: input.FlashSaleCapacity,
 		FlashSaleStartsAt: flashSaleStartsAt,
@@ -314,7 +314,7 @@ func BookEvent(c *gin.Context) {
 	}
 
 	var input struct {
-		TicketType        string `json:"ticket_type"`
+		TicketType         string `json:"ticket_type"`
 		NotifyEventUpdates bool   `json:"notify_event_updates"`
 	}
 	if c.Request.ContentLength != 0 {
@@ -366,12 +366,12 @@ func BookEvent(c *gin.Context) {
 	}
 
 	booking := models.Booking{
-		UserID:  userID.(uint),
-		EventID: event.ID,
-		Status:  "confirmed",
-		TicketType: ticketType,
+		UserID:             userID.(uint),
+		EventID:            event.ID,
+		Status:             "confirmed",
+		TicketType:         ticketType,
 		NotifyEventUpdates: input.NotifyEventUpdates,
-		QRToken: uuid.New().String(),
+		QRToken:            uuid.New().String(),
 	}
 	if err := db.DB.Create(&booking).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to book"})
@@ -382,12 +382,18 @@ func BookEvent(c *gin.Context) {
 	db.DB.First(&user, userID)
 	if err := services.SendMail(user.Email, user.Name,
 		"Booking Confirmed — "+event.Title,
-		fmt.Sprintf(`
-			<h1>You're booked!</h1>
-			<p>Your %s ticket for <b>%s</b> on %s is confirmed.</p>
-			<p>Your check-in code: <b>%s</b></p>
-			<p>Show this at the door.</p>
-		`, ticketTypeName(ticketType), html.EscapeString(event.Title), html.EscapeString(event.Date), booking.QRToken),
+		fmt.Sprintf(`<p class="eyebrow">Booking confirmed</p>
+			<h1>You're on the list.</h1>
+			<p>Your place is confirmed. Keep your ticket code ready to check in at the event.</p>
+			<div class="success-box">
+				<strong>%s</strong><br>
+				%s &middot; %s
+			</div>
+			<p class="eyebrow">Your check-in code</p>
+			<div class="code-block">%s</div>
+			<p><a class="cta-button" href="https://galleria-flame-ten.vercel.app/bookings">View your ticket</a></p>`,
+			html.EscapeString(event.Title), html.EscapeString(ticketTypeName(ticketType)),
+			html.EscapeString(event.Date), html.EscapeString(booking.QRToken)),
 	); err != nil {
 		log.Printf("Could not send booking confirmation to attendee %d: %v", booking.UserID, err)
 	}
@@ -416,23 +422,23 @@ func UpdateEvent(c *gin.Context) {
 	}
 
 	var values struct {
-		Title              *string   `json:"title"`
-		Description        *string   `json:"description"`
-		Date               *string   `json:"date"`
-		Location           *string   `json:"location"`
-		City               *string   `json:"city"`
-		Country            *string   `json:"country"`
-		Category           *string   `json:"category"`
-		Capacity           *int      `json:"capacity"`
-		PhotoURLs          *[]string `json:"photo_urls"`
-		IsFree             *bool     `json:"is_free"`
-		Price              *int64    `json:"price"`
-		VIPPrice           *int64    `json:"vip_price"`
-		VIPCapacity        *int      `json:"vip_capacity"`
-		FlashSalePrice     *int64    `json:"flash_sale_price"`
-		FlashSaleCapacity  *int      `json:"flash_sale_capacity"`
-		FlashSaleStartsAt  *string   `json:"flash_sale_starts_at"`
-		FlashSaleEndsAt    *string   `json:"flash_sale_ends_at"`
+		Title             *string   `json:"title"`
+		Description       *string   `json:"description"`
+		Date              *string   `json:"date"`
+		Location          *string   `json:"location"`
+		City              *string   `json:"city"`
+		Country           *string   `json:"country"`
+		Category          *string   `json:"category"`
+		Capacity          *int      `json:"capacity"`
+		PhotoURLs         *[]string `json:"photo_urls"`
+		IsFree            *bool     `json:"is_free"`
+		Price             *int64    `json:"price"`
+		VIPPrice          *int64    `json:"vip_price"`
+		VIPCapacity       *int      `json:"vip_capacity"`
+		FlashSalePrice    *int64    `json:"flash_sale_price"`
+		FlashSaleCapacity *int      `json:"flash_sale_capacity"`
+		FlashSaleStartsAt *string   `json:"flash_sale_starts_at"`
+		FlashSaleEndsAt   *string   `json:"flash_sale_ends_at"`
 	}
 	body, err := json.Marshal(input)
 	if err != nil || json.Unmarshal(body, &values) != nil {
@@ -565,7 +571,21 @@ func UpdateEvent(c *gin.Context) {
 				)
 			}
 			content := fmt.Sprintf(
-				"<h1>Event details updated</h1><p>The organizer updated <b>%s</b>.</p><p><b>Date:</b> %s<br><b>Venue:</b> %s</p><p>%s</p><p><b>General admission:</b> %s<br><b>VIP:</b> %s<br><b>Flash sale:</b> %s</p><p>Visit Galleria for the latest event details.</p>",
+				`<p class="eyebrow">Event update</p>
+				<h1>Some details have changed</h1>
+				<p>The organizer updated <strong>%s</strong>. Here are the latest details:</p>
+				<div class="detail-card">
+					<p><strong>Date:</strong> %s</p>
+					<p><strong>Venue:</strong> %s</p>
+					<p><strong>About this event:</strong> %s</p>
+				</div>
+				<div class="highlight">
+					<strong>Ticket information</strong><br>
+					General admission: %s<br>
+					VIP: %s<br>
+					Flash sale: %s
+				</div>
+				<p>We look forward to seeing you there.</p>`,
 				html.EscapeString(event.Title), html.EscapeString(event.Date),
 				html.EscapeString(event.Location), html.EscapeString(event.Description),
 				html.EscapeString(generalTicketDetails), html.EscapeString(vipTicketDetails),

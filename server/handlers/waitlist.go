@@ -2,10 +2,11 @@ package handlers
 
 import (
 	"fmt"
+	"html"
+	"net/http"
 	"server/db"
 	"server/models"
 	"server/services"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -86,12 +87,12 @@ func NotifyWaitlist(eventID uint) {
 		next.User.Email,
 		next.User.Name,
 		"A spot opened up — "+next.Event.Title,
-		fmt.Sprintf(`
-			<h2>Good news!</h2>
-			<p>A spot just opened up for <b>%s</b> on %s.</p>
-			<p>Book now before it fills up again.</p>
-			<a href="https://galleria-flame-ten.vercel.app/events/%d">Book my spot</a>
-		`, next.Event.Title, next.Event.Date, next.Event.ID),
+		fmt.Sprintf(`<p class="eyebrow">Waitlist update</p>
+			<h1>A spot just opened up.</h1>
+			<p>You're next in line for <strong>%s</strong>.</p>
+			<div class="highlight"><strong>Date:</strong> %s<br>Spots are limited, so book as soon as you're ready.</div>
+			<p><a class="cta-button" href="https://galleria-flame-ten.vercel.app/events/%d">Book your spot</a></p>`,
+			html.EscapeString(next.Event.Title), html.EscapeString(next.Event.Date), next.Event.ID),
 	)
 
 	createNotification(next.UserID, 0, "waitlist",
